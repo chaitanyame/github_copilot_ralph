@@ -1,0 +1,219 @@
+{
+  "project": "Teradata to Databricks SQL Migration POC",
+  "version": "0.1.0",
+  "lastUpdated": "2025-12-04",
+  "features": [
+    {
+      "id": "F001",
+      "category": "core",
+      "description": "Parse Teradata SQL files and identify syntax elements",
+      "steps": [
+        "Read SQL file content",
+        "Tokenize SQL statements",
+        "Identify Teradata-specific constructs",
+        "Build abstract syntax representation"
+      ],
+      "passes": false,
+      "priority": "P1",
+      "userStory": "US1"
+    },
+    {
+      "id": "F002",
+      "category": "core",
+      "description": "Transform Teradata data types to Databricks equivalents",
+      "steps": [
+        "Map BYTEINT to TINYINT",
+        "Map INTEGER to INT",
+        "Map DECIMAL to DECIMAL",
+        "Map VARCHAR to STRING",
+        "Map DATE/TIME/TIMESTAMP appropriately",
+        "Handle CHARACTER SET specifications"
+      ],
+      "passes": false,
+      "priority": "P1",
+      "userStory": "US1"
+    },
+    {
+      "id": "F003",
+      "category": "core",
+      "description": "Convert Teradata-specific functions to Databricks equivalents",
+      "steps": [
+        "Transform QUALIFY to window function subquery pattern",
+        "Transform SAMPLE to TABLESAMPLE",
+        "Map ZEROIFNULL to COALESCE/NVL patterns",
+        "Map NULLIFZERO appropriately",
+        "Handle SEL abbreviation to SELECT"
+      ],
+      "passes": false,
+      "priority": "P1",
+      "userStory": "US1"
+    },
+    {
+      "id": "F004",
+      "category": "core",
+      "description": "Handle Teradata SET operations and syntax",
+      "steps": [
+        "Convert SET TABLE to standard CREATE TABLE",
+        "Handle MULTISET tables",
+        "Transform COLLECT STATISTICS",
+        "Handle PRIMARY INDEX to appropriate Databricks pattern"
+      ],
+      "passes": false,
+      "priority": "P1",
+      "userStory": "US1"
+    },
+    {
+      "id": "F005",
+      "category": "core",
+      "description": "Generate valid Databricks SQL output file",
+      "steps": [
+        "Assemble transformed SQL",
+        "Preserve comments and formatting",
+        "Write to output file with .sql extension",
+        "Validate output syntax"
+      ],
+      "passes": false,
+      "priority": "P1",
+      "userStory": "US1"
+    },
+    {
+      "id": "F006",
+      "category": "context",
+      "description": "Load and parse guidelines/patterns context file",
+      "steps": [
+        "Read guidelines file (JSON/YAML format)",
+        "Parse naming conventions",
+        "Parse function mapping overrides",
+        "Parse schema migration rules",
+        "Validate guidelines structure"
+      ],
+      "passes": false,
+      "priority": "P2",
+      "userStory": "US2"
+    },
+    {
+      "id": "F007",
+      "category": "context",
+      "description": "Apply naming conventions from guidelines",
+      "steps": [
+        "Transform table names per conventions",
+        "Transform schema references",
+        "Apply database name mappings",
+        "Handle case sensitivity rules"
+      ],
+      "passes": false,
+      "priority": "P2",
+      "userStory": "US2"
+    },
+    {
+      "id": "F008",
+      "category": "context",
+      "description": "Apply custom function mappings from guidelines",
+      "steps": [
+        "Override default function mappings",
+        "Handle organization-specific UDFs",
+        "Apply parameter transformations"
+      ],
+      "passes": false,
+      "priority": "P2",
+      "userStory": "US2"
+    },
+    {
+      "id": "F009",
+      "category": "batch",
+      "description": "Process multiple SQL files in batch mode",
+      "steps": [
+        "Scan input directory for .sql files",
+        "Queue files for processing",
+        "Process each file sequentially",
+        "Handle failures gracefully without stopping"
+      ],
+      "passes": false,
+      "priority": "P3",
+      "userStory": "US3"
+    },
+    {
+      "id": "F010",
+      "category": "batch",
+      "description": "Provide progress feedback during batch processing",
+      "steps": [
+        "Display current file being processed",
+        "Show progress percentage",
+        "Display running success/failure counts"
+      ],
+      "passes": false,
+      "priority": "P3",
+      "userStory": "US3"
+    },
+    {
+      "id": "F011",
+      "category": "batch",
+      "description": "Generate batch summary report",
+      "steps": [
+        "Count successful conversions",
+        "Count failed conversions",
+        "List files with warnings",
+        "Generate consolidated report file"
+      ],
+      "passes": false,
+      "priority": "P3",
+      "userStory": "US3"
+    },
+    {
+      "id": "F012",
+      "category": "validation",
+      "description": "Generate per-file validation report",
+      "steps": [
+        "Identify unconvertible constructs",
+        "Record warnings with line numbers",
+        "Suggest manual actions needed",
+        "Write validation report alongside output"
+      ],
+      "passes": false,
+      "priority": "P4",
+      "userStory": "US4"
+    },
+    {
+      "id": "F013",
+      "category": "validation",
+      "description": "Generate consolidated validation report for batch",
+      "steps": [
+        "Aggregate all per-file reports",
+        "Summarize common issues",
+        "Prioritize by severity",
+        "Generate actionable remediation list"
+      ],
+      "passes": false,
+      "priority": "P4",
+      "userStory": "US4"
+    },
+    {
+      "id": "F014",
+      "category": "cli",
+      "description": "Command-line interface for single file conversion",
+      "steps": [
+        "Accept input file path argument",
+        "Accept output directory argument",
+        "Accept optional guidelines file argument",
+        "Display conversion result"
+      ],
+      "passes": false,
+      "priority": "P1",
+      "userStory": "US1"
+    },
+    {
+      "id": "F015",
+      "category": "cli",
+      "description": "Command-line interface for batch conversion",
+      "steps": [
+        "Accept input directory argument",
+        "Accept output directory argument",
+        "Accept optional guidelines file argument",
+        "Display batch progress and summary"
+      ],
+      "passes": false,
+      "priority": "P3",
+      "userStory": "US3"
+    }
+  ]
+}
