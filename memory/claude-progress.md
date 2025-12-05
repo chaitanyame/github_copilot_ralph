@@ -24,6 +24,39 @@ This is a **template repository** for building long-lived agents. It includes:
 
 ## Session History
 
+### Session 4 - 2024-12-04
+
+**Feature**: Add Git Feature Branching to Workflow
+**Status**: ✅ Complete
+
+#### Accomplished
+- Updated `@Coder` agent with feature branching steps:
+  - Step 5: Create feature branch before implementing
+  - Step 9: Commit and push to feature branch
+  - Step 10: Create PR or merge to dev
+- Updated `/speckit.implement` prompt with branching workflow
+- Created `.github/instructions/git-branching.instructions.md`:
+  - Branch naming conventions
+  - Workflow per feature
+  - Commit message format
+  - Recovery procedures
+
+#### Files Changed
+- `.github/agents/coder.agent.md` (updated)
+- `.github/prompts/speckit.implement.prompt.md` (updated)
+- `.github/instructions/git-branching.instructions.md` (new)
+
+#### Branch Workflow Now
+```
+1. git checkout -b feature/{id}-{name}
+2. Implement feature
+3. git commit -m "feat({id}): {name}"
+4. git push origin feature/{id}-{name}
+5. Create PR or merge to dev
+```
+
+---
+
 ### Session 3 - 2024-12-04
 
 **Feature**: Verify Anthropic Pattern Compliance

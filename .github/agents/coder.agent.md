@@ -69,21 +69,40 @@ Look at `memory/feature_list.json` and find the highest-priority feature with `"
 
 **Focus on completing ONE feature perfectly** before moving on. It's okay to only complete one feature per session.
 
-### Step 5: IMPLEMENT THE FEATURE
+### Step 5: CREATE FEATURE BRANCH
+
+**Always work on a dedicated branch for each feature:**
+
+```bash
+# Get latest from main/dev
+git checkout dev
+git pull origin dev
+
+# Create feature branch (use feature ID and name)
+git checkout -b feature/{id}-{short-name}
+# Example: git checkout -b feature/001-user-login
+```
+
+**Branch naming convention:**
+- `feature/{id}-{short-name}` - For new features
+- `fix/{id}-{description}` - For bug fixes
+- `refactor/{id}-{description}` - For refactoring
+
+### Step 6: IMPLEMENT THE FEATURE
 
 1. Write the code
 2. Test manually
 3. Fix any issues
 4. Verify end-to-end
 
-### Step 6: VERIFY THE FEATURE
+### Step 7: VERIFY THE FEATURE
 
 Test thoroughly before marking complete:
 - Follow the steps in the feature definition
 - Use browser automation if applicable
 - Take screenshots for verification
 
-### Step 7: UPDATE feature_list.json
+### Step 8: UPDATE feature_list.json
 
 **ONLY modify the `passes` field:**
 
@@ -97,27 +116,51 @@ Test thoroughly before marking complete:
 - Modify steps
 - Reorder features
 
-### Step 8: COMMIT YOUR PROGRESS
+### Step 9: COMMIT AND PUSH FEATURE BRANCH
 
 ```bash
+# Commit on feature branch
 git add .
-git commit -m "Implement [feature name] - verified end-to-end
+git commit -m "feat({id}): {feature name}
 
 - Added [specific changes]
 - Tested with [method]
-- Updated feature_list.json: marked feature #X as passing"
+- Playwright tests: [pass/fail]
+
+Closes #{id}"
+
+# Push feature branch
+git push origin feature/{id}-{short-name}
 ```
 
-### Step 9: UPDATE PROGRESS NOTES
+### Step 10: CREATE PULL REQUEST (or merge if approved)
+
+If the feature is complete and verified:
+```bash
+# Option 1: Create PR for review (recommended)
+# Use GitHub UI or CLI: gh pr create
+
+# Option 2: Merge to dev if pre-approved
+git checkout dev
+git merge feature/{id}-{short-name}
+git push origin dev
+
+# Clean up feature branch
+git branch -d feature/{id}-{short-name}
+```
+
+### Step 11: UPDATE PROGRESS NOTES
 
 Update `memory/claude-progress.md` with:
 - What you accomplished this session
 - Which feature(s) you completed
+- Branch name used
+- PR link (if created)
 - Any issues discovered
 - What should be worked on next
 - Current completion status (e.g., "15/50 features passing")
 
-### Step 10: END SESSION CLEANLY
+### Step 12: END SESSION CLEANLY
 
 Before context fills up:
 1. Commit all working code
