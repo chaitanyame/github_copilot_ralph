@@ -7,6 +7,7 @@ This file bridges context between agent sessions. Each agent reads this at the s
 **Project**: Agent Harness Framework (Template Repository)
 **Status**: Ready for use as template
 **Features**: Template - not applicable
+**Last Updated**: 2024-12-04
 
 ## What's Been Done
 
@@ -19,15 +20,49 @@ This is a **template repository** for building long-lived agents. It includes:
 - ✅ Scripts for project setup (Bash and PowerShell)
 - ✅ Templates for specs, plans, tasks, and feature lists
 - ✅ VS Code configuration for Copilot integration
+- ✅ **Playwright testing support** - instructions and templates
 
-## How to Use This Template
+## Session History
 
-1. **Create a new repo** from this template
-2. **Run setup script**: `./scripts/bash/setup-project.sh` or `.\scripts\powershell\setup-project.ps1`
-3. **Define your constitution**: `/speckit.constitution`
-4. **Create specifications**: `/speckit.specify`
-5. **Generate plan**: `/speckit.plan` → `/speckit.tasks` → `/harness.generate`
-6. **Implement features**: `@Coder` for incremental sessions
+### Session 2 - 2024-12-04
+
+**Feature**: Add Playwright UI Testing Support
+**Status**: ✅ Complete
+
+#### Accomplished
+- Created `.github/instructions/playwright.instructions.md` with:
+  - Setup instructions
+  - Best practices (Page Object Model, data-testid, assertions)
+  - Running tests commands
+  - Configuration template
+  - Integration with harness feature verification
+- Created `templates/tests/feature.spec.template.ts` - Playwright test template
+- Updated `templates/docs/spec-template.md` - Added UI Tests section
+
+#### Files Changed
+- `.github/instructions/playwright.instructions.md` (new)
+- `templates/tests/feature.spec.template.ts` (new)
+- `templates/docs/spec-template.md` (updated)
+
+#### Next Steps
+- Commit changes
+- Consider adding example Playwright config to templates
+
+---
+
+### Session 1 - 2024-12-04
+
+**Feature**: Spec Kit + Harness Integration
+**Status**: ✅ Complete
+
+#### Accomplished
+- Created Spec Kit prompts (`/speckit.*`)
+- Created Harness prompts (`/harness.*`)
+- Created setup scripts (Bash + PowerShell)
+- Created documentation templates
+- Updated README with workflows
+
+---
 
 ## Quick Reference
 

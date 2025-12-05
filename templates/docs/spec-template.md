@@ -100,6 +100,15 @@ function {functionName}({params}): {ReturnType}
 
 - {What to test at integration level}
 
+### UI Tests (Playwright)
+
+- **Test file**: `tests/{feature-name}.spec.ts`
+- **Scenarios to cover**:
+  - {Happy path scenario}
+  - {Error state scenario}
+  - {Edge case scenario}
+- **Run command**: `npx playwright test tests/{feature-name}.spec.ts`
+
 ### Manual Testing
 
 - {Manual verification steps}
