@@ -1,84 +1,204 @@
-# Teradata to Databricks SQL Migration POC
+# Agent Harness Framework
 
-A proof-of-concept tool for converting Teradata SQL files to Databricks SQL format using configurable guidelines and patterns.
+A template repository for building **long-lived autonomous agents** within VS Code GitHub Copilot, based on [Anthropic's "Effective Harnesses for Long-Running Agents"](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents).
+
+## The Problem
+
+AI agents face a fundamental challenge: **each new context window starts with no memory**. Without proper scaffolding:
+- Agents try to do too much at once
+- They declare victory prematurely  
+- Work gets left in broken states
+- Time is wasted re-discovering context
+
+## The Solution
+
+This framework provides file-based artifacts that bridge context between sessions:
+
+| Artifact | Purpose |
+|----------|---------|
+| `memory/feature_list.json` | Source of truth - all features with pass/fail tracking |
+| `memory/claude-progress.md` | Session notes - what happened, what's next |
+| `init.sh` / `init.ps1` | Environment setup script |
+| Git history | Incremental progress with rollback capability |
 
 ## Quick Start
 
+### 1. Use as Template
+
+Click "Use this template" on GitHub, or clone directly:
+
 ```bash
-# Setup environment
-./init.sh
-
-# Activate virtual environment
-source venv/bin/activate  # Linux/Mac
-# or
-venv\Scripts\activate     # Windows
-
-# Convert a single file
-python -m teradata_converter convert input.sql -o output/
-
-# Convert with guidelines
-python -m teradata_converter convert input.sql -o output/ -g guidelines.json
-
-# Batch convert a directory
-python -m teradata_converter batch input_dir/ -o output/ -g guidelines.json
+git clone https://github.com/anthropics/agent-harness-framework.git my-project
+cd my-project
 ```
 
-## Project Structure
+### 2. Initialize Your Project
+
+In VS Code with GitHub Copilot, invoke the Initializer agent:
 
 ```
-├── src/teradata_converter/     # Main source code
-│   ├── parsers/                # SQL parsing logic
-│   ├── transformers/           # Transformation rules
-│   ├── validators/             # Output validation
-│   └── cli/                    # Command-line interface
-├── tests/                      # Test suite
-│   ├── unit/                   # Unit tests
-│   ├── integration/            # Integration tests
-│   └── fixtures/               # Test data
-├── features.json               # Feature tracking (Constitution Principle VI)
-├── progress.md                 # Session progress log (Constitution Principle IV)
-└── init.sh                     # Environment setup
+@Initializer Set up a [describe your project]
 ```
 
-## Constitution Compliance
+The Initializer will:
+- Create `memory/feature_list.json` with all features
+- Set up project structure
+- Create `init.sh` for environment setup
+- Make the initial git commit
 
-This project follows the Harness Framework Constitution for long-running agent sessions:
+### 3. Implement Features
 
-- **I. Initializer-Coder Pattern**: Environment setup separated from implementation
-- **II. Incremental Progress**: One feature at a time
-- **III. Clean State Handoff**: Always leave code in mergeable state
-- **IV. Progress Tracking**: Session log in progress.md
-- **V. Comprehensive Testing**: End-to-end testing before marking complete
-- **VI. Feature-Based Development**: Tracked in features.json
+Use the Coder agent for subsequent sessions:
 
-## Features
-
-See `features.json` for the complete feature list with pass/fail status.
-
-## Guidelines Format
-
-```json
-{
-  "naming": {
-    "schema_mappings": {
-      "old_schema": "new_catalog.new_schema"
-    },
-    "table_prefix": "",
-    "case_transform": "lower"
-  },
-  "functions": {
-    "custom_mappings": {
-      "MY_UDF": "my_databricks_udf"
-    }
-  },
-  "types": {
-    "overrides": {
-      "CHAR": "STRING"
-    }
-  }
-}
 ```
+@Coder Continue implementing features
+```
+
+The Coder will:
+- Read progress notes to get context
+- Pick one feature to implement
+- Test and verify
+- Commit and update progress
+
+## Two-Agent Pattern
+
+### Initializer (Session 1)
+
+Sets up the foundation for all future work:
+- Creates comprehensive feature list
+- Establishes project structure
+- Documents everything for future agents
+
+### Coder (Sessions 2+)
+
+Makes incremental progress:
+- Reads previous session notes
+- Implements ONE feature at a time
+- Tests before marking complete
+- Leaves clean state for next session
+
+## Directory Structure
+
+```
+├── .github/
+│   ├── agents/           # Agent definitions
+│   │   ├── initializer.agent.md
+│   │   ├── coder.agent.md
+│   │   ├── planner.agent.md
+│   │   ├── researcher.agent.md
+│   │   ├── reviewer.agent.md
+│   │   └── orchestrator.agent.md
+│   ├── prompts/          # Reusable prompt commands
+│   ├── instructions/     # Context-specific instructions
+│   └── copilot-instructions.md
+├── .vscode/
+│   ├── mcp.json          # MCP server configuration
+│   └── settings.json     # VS Code settings
+├── memory/
+│   ├── constitution.md   # Project principles
+│   ├── feature_list.json # Source of truth
+│   ├── claude-progress.md # Session notes
+│   ├── state/            # Agent checkpoints
+│   ├── context/          # Persisted knowledge
+│   └── sessions/         # Session logs
+├── templates/            # Templates for new agents/prompts
+├── AGENTS.md             # Cross-agent instructions
+├── init.sh               # Setup script (Unix)
+├── init.ps1              # Setup script (Windows)
+└── README.md
+```
+
+## Critical Rules
+
+### Feature List is Sacred
+
+`memory/feature_list.json` is the single source of truth:
+- ✅ Change `"passes": false` → `"passes": true` when verified
+- ❌ NEVER remove features
+- ❌ NEVER edit descriptions  
+- ❌ NEVER modify steps
+- ❌ NEVER reorder features
+
+### One Feature at a Time
+
+Each session should focus on ONE feature:
+1. Pick highest priority with `passes: false`
+2. Implement completely
+3. Test and verify
+4. Commit and document
+
+### Leave Clean State
+
+Before ending any session:
+- All work committed
+- Progress notes updated
+- No broken features
+- Ready for next agent
+
+## Available Agents
+
+| Agent | Purpose | Use When |
+|-------|---------|----------|
+| `@Initializer` | First session setup | Starting new project |
+| `@Coder` | Feature implementation | Continuing development |
+| `@Planner` | Task breakdown | Complex planning needed |
+| `@Researcher` | Context gathering | Need to understand codebase |
+| `@Reviewer` | Quality assurance | Review completed work |
+| `@Orchestrator` | Multi-agent coordination | Complex multi-step workflows |
+
+## Prompt Commands
+
+Use these in VS Code Copilot Chat:
+
+- `/init` - Initialize project
+- `/specify` - Create specification
+- `/plan` - Create implementation plan
+- `/execute` - Execute a plan
+- `/review` - Review implementation
+- `/checkpoint` - Save current state
+- `/resume` - Resume from checkpoint
+
+## Customization
+
+### Adding New Agents
+
+Create a file in `.github/agents/`:
+
+```markdown
+---
+name: MyAgent
+description: What this agent does
+tools:
+  - editFiles
+  - search
+---
+
+# My Agent
+
+Instructions for the agent...
+```
+
+### Adding New Prompts
+
+Create a file in `.github/prompts/`:
+
+```markdown
+---
+agent: agent
+description: What this prompt does
+---
+
+# My Prompt
+
+Prompt content...
+```
+
+## Based On
+
+This framework implements patterns from:
+- [Anthropic: Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+- [Anthropic Quickstart: Autonomous Coding](https://github.com/anthropics/claude-quickstarts/tree/main/autonomous-coding)
 
 ## License
 
-Internal POC - Not for distribution
+MIT License - see [LICENSE](LICENSE) for details.
