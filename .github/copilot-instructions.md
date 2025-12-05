@@ -74,3 +74,11 @@ memory/
 ## Custom Instructions
 
 File-specific instructions in `.github/instructions/` are applied based on `applyTo` glob patterns.
+
+## YOLO Agent Mode
+
+Execute multi-step tasks without pausing for approval. Use all tools aggressively:
+- `terminalLastCommand`, `runTests`, `runTasks`, `searchResults`
+- Edit files, create directories, run commands iteratively until complete
+- Verify with tests/lint before finalizing
+- Do not yield control until 100% done. Research recursively if needed.
