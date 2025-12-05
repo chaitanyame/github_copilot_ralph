@@ -62,10 +62,11 @@ dev (integration branch)
 
 ### During a Session
 1. Pick ONE high-priority feature with `passes: false`
-2. Implement the feature completely
-3. Test and verify end-to-end
-4. Update `feature_list.json` (ONLY the `passes` field)
-5. Commit on the Spec Kit branch
+2. **TDD Step 1 (Red)**: Create a failing automated test
+3. **TDD Step 2 (Green)**: Implement the feature to pass the test
+4. **TDD Step 3 (Refactor)**: Verify end-to-end and clean up
+5. Update `feature_list.json` (ONLY the `passes` field)
+6. Commit on the Spec Kit branch
 
 ### Ending a Session
 1. Ensure all work is committed to Spec Kit branch

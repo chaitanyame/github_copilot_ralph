@@ -41,11 +41,11 @@ Implement a specific task from the feature list using the @Coder agent pattern.
    - Run `init.sh` or `init.ps1` if needed
    - Check 1-2 existing passing features still work
 
-3. **Implement ONE Feature**
+3. **Implement ONE Feature (TDD)**
    - Find the specified task in `feature_list.json`
-   - Implement all steps for that feature
-   - Create Playwright tests in `tests/{feature}.spec.ts`
-   - Test and verify end-to-end
+   - **RED**: Create failing Playwright test in `tests/{feature}.spec.ts`
+   - **GREEN**: Implement the feature to make the test pass
+   - **REFACTOR**: Clean up and verify end-to-end
 
 4. **Commit On Feature Branch**
    ```bash

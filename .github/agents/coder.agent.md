@@ -78,26 +78,36 @@ Look at `memory/feature_list.json` and find the highest-priority feature with `"
 
 **Focus on completing ONE feature perfectly** before moving on. It's okay to only complete one feature per session.
 
-### Step 5: STAY ON SPEC KIT BRANCH
+### Step 5: IMPLEMENT WITH TDD
 
-> **Important**: Do NOT create sub-branches! All work happens on the Spec Kit feature branch.
+**You MUST follow Test-Driven Development:**
+
+1. **RED**: Create a failing Playwright test in `tests/{feature}.spec.ts`
+   - Run it to confirm it fails: `npx playwright test tests/{feature}.spec.ts`
+2. **GREEN**: Implement the feature code to make the test pass
+3. **REFACTOR**: Clean up code and verify end-to-end
 
 ```bash
-# Verify you're on the Spec Kit branch
-git branch --show-current
-# Should return: 003-real-time-chat (or similar)
+# Example TDD Workflow
+# 1. Create test
+touch tests/login.spec.ts
+# (Write test content...)
 
-# Pull latest changes (if collaborating)
-git pull origin $(git branch --show-current)
+# 2. Verify failure
+npx playwright test tests/login.spec.ts
+# Should fail
+
+# 3. Implement feature
+# (Write implementation...)
+
+# 4. Verify success
+npx playwright test tests/login.spec.ts
+# Should pass
 ```
 
-**Branch Structure:**
-```
-dev (main development)
- └── 001-user-authentication (Spec Kit branch - you work here)
-      └── All implementation commits
-      └── PR to dev when ALL features pass
-```
+### Step 6: VERIFY WITH BROWSER AUTOMATION
+
+**CRITICAL:** You MUST verify features through the actual UI.
 
 ### Step 6: IMPLEMENT THE FEATURE
 

@@ -10,13 +10,19 @@ Enable developers to run **long-lived autonomous agents** within VS Code GitHub 
 
 ## Core Principles
 
-### 1. Incremental Progress
+### 1. Test-Driven Development (TDD)
+- Write the test FIRST (Red)
+- Implement the feature (Green)
+- Refactor and Verify (Refactor)
+- Never implement without a failing test
+
+### 2. Incremental Progress
 - One feature at a time
 - Complete before moving on
 - Commit after each success
 - Don't try to do too much
 
-### 2. File-Based Memory
+### 3. File-Based Memory
 - All state lives in files
 - `feature_list.json` is the source of truth
 - Progress notes bridge sessions
