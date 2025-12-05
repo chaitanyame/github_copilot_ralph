@@ -10,11 +10,15 @@ Enable developers to run **long-lived autonomous agents** within VS Code GitHub 
 
 ## Core Principles
 
-### 1. Test-Driven Development (TDD)
-- Write the test FIRST (Red)
-- Implement the feature (Green)
-- Refactor and Verify (Refactor)
-- Never implement without a failing test
+### 1. Test-Driven Development (TDD) - MANDATORY
+
+> ⚠️ **NON-NEGOTIABLE**: Implementation code MUST NOT be written before a failing test exists.
+
+- **RED**: Write the test FIRST - verify it FAILS
+- **GREEN**: Implement ONLY enough code to pass the test
+- **REFACTOR**: Clean up while keeping tests green
+- **ENFORCEMENT**: If test passes before implementation, the test is wrong
+- **VIOLATION**: Writing implementation before test is a framework violation
 
 ### 2. Incremental Progress
 - One feature at a time

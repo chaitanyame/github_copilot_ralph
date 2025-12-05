@@ -60,11 +60,20 @@ dev (integration branch)
 5. Run `init.sh` to start servers (if applicable)
 6. Verify 1-2 passing features still work
 
-### During a Session
+### During a Session (TDD MANDATORY)
+
+> ⚠️ **BLOCKING**: Do NOT write implementation code before the test exists and fails.
+
 1. Pick ONE high-priority feature with `passes: false`
-2. **TDD Step 1 (Red)**: Create a failing automated test
-3. **TDD Step 2 (Green)**: Implement the feature to pass the test
-4. **TDD Step 3 (Refactor)**: Verify end-to-end and clean up
+2. **TDD Step 1 (RED)**: Create a failing automated test in `tests/{feature}.spec.ts`
+   - Run test to confirm it FAILS: `npx playwright test tests/{feature}.spec.ts`
+   - If test passes without implementation, your test is wrong
+3. **TDD Step 2 (GREEN)**: Implement ONLY enough code to pass the test
+   - Run test to confirm it PASSES
+   - Do not move on until test passes
+4. **TDD Step 3 (REFACTOR)**: Clean up code, verify end-to-end
+   - Run test again to ensure still passes
+   - Browser verification for UI features
 5. Update `feature_list.json` (ONLY the `passes` field)
 6. Commit on the Spec Kit branch
 

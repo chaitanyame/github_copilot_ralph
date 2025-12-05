@@ -27,12 +27,13 @@ Key artifacts:
 
 ## Critical Principles
 
-1. **Branches are created by Spec Kit** - Don't create feature branches manually
-2. **One feature at a time** - Don't try to do too much in one session
-3. **All work on Spec Kit branch** - No sub-branches
-4. **Feature list is sacred** - Only modify the `passes` field
-5. **Leave clean state** - No half-finished work, all committed
-6. **Document for the next agent** - They have zero memory
+1. **TDD is MANDATORY** - Write failing test FIRST, then implement, then refactor. Never implement without a failing test.
+2. **Branches are created by Spec Kit** - Don't create feature branches manually
+3. **One feature at a time** - Don't try to do too much in one session
+4. **All work on Spec Kit branch** - No sub-branches
+5. **Feature list is sacred** - Only modify the `passes` field
+6. **Leave clean state** - No half-finished work, all committed
+7. **Document for the next agent** - They have zero memory
 
 ## Available Commands
 

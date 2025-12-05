@@ -78,43 +78,67 @@ Look at `memory/feature_list.json` and find the highest-priority feature with `"
 
 **Focus on completing ONE feature perfectly** before moving on. It's okay to only complete one feature per session.
 
-### Step 5: IMPLEMENT WITH TDD
+### Step 5: IMPLEMENT WITH TDD (MANDATORY)
 
-**You MUST follow Test-Driven Development:**
+> ⚠️ **BLOCKING REQUIREMENT**: You MUST NOT write implementation code before the test exists and fails.
+> Skipping this step is a violation of the framework principles.
 
-1. **RED**: Create a failing Playwright test in `tests/{feature}.spec.ts`
-   - Run it to confirm it fails: `npx playwright test tests/{feature}.spec.ts`
-2. **GREEN**: Implement the feature code to make the test pass
-3. **REFACTOR**: Clean up code and verify end-to-end
+**Test-Driven Development is NON-NEGOTIABLE:**
 
+#### Phase 1: RED (Create Failing Test)
 ```bash
-# Example TDD Workflow
-# 1. Create test
-touch tests/login.spec.ts
-# (Write test content...)
+# 1. Create the test file
+mkdir -p tests
+touch tests/{feature}.spec.ts
 
-# 2. Verify failure
-npx playwright test tests/login.spec.ts
-# Should fail
+# 2. Write the test that describes expected behavior
+# (Edit tests/{feature}.spec.ts with test content)
 
-# 3. Implement feature
-# (Write implementation...)
+# 3. Run the test - IT MUST FAIL
+npx playwright test tests/{feature}.spec.ts
+# Expected: FAIL (feature not implemented yet)
 
-# 4. Verify success
-npx playwright test tests/login.spec.ts
-# Should pass
+# 4. If test passes, your test is wrong - fix it first!
 ```
+
+#### Phase 2: GREEN (Implement to Pass)
+```bash
+# 1. Write ONLY enough code to make the test pass
+# (Implement the feature...)
+
+# 2. Run the test again
+npx playwright test tests/{feature}.spec.ts
+# Expected: PASS
+
+# 3. If test fails, fix the implementation (not the test!)
+# 4. Repeat until test passes
+```
+
+#### Phase 3: REFACTOR (Clean Up)
+```bash
+# 1. Clean up code without changing behavior
+# 2. Run test to ensure it still passes
+npx playwright test tests/{feature}.spec.ts
+# Expected: PASS
+
+# 3. Verify end-to-end in browser
+```
+
+**TDD Enforcement Checklist:**
+- [ ] Test file exists BEFORE implementation code
+- [ ] Test was verified to FAIL before implementation
+- [ ] Test now PASSES after implementation
+- [ ] No implementation code written without a covering test
 
 ### Step 6: VERIFY WITH BROWSER AUTOMATION
 
 **CRITICAL:** You MUST verify features through the actual UI.
 
-### Step 6: IMPLEMENT THE FEATURE
-
-1. Write the code
-2. Test manually
-3. Fix any issues
-4. Verify end-to-end
+1. Navigate to the app in a real browser
+2. Interact like a human user (click, type, scroll)
+3. Take screenshots at each step
+4. Verify both functionality AND visual appearance
+5. Check for console errors in browser
 
 ### Step 7: VERIFY THE FEATURE
 
