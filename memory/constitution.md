@@ -39,7 +39,13 @@ Enable developers to run **long-lived autonomous agents** within VS Code GitHub 
 - Explain decisions
 - Leave clean state
 
-### 5. Feature List is Sacred
+### 5. Update Progress Immediately
+- Update progress notes after each feature completion
+- Document bugs/issues as soon as discovered
+- Write before ending session (mandatory)
+- Rule: "If you wouldn't remember it tomorrow, write it down now."
+
+### 6. Feature List is Sacred
 - Only change `passes` field
 - Never remove features
 - Never edit descriptions

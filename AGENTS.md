@@ -71,12 +71,26 @@ dev (integration branch)
 ### Ending a Session
 1. Ensure all work is committed to Spec Kit branch
 2. Push to remote
-2. Update `memory/claude-progress.md` with:
+3. Update `memory/claude-progress.md` with:
    - What was accomplished
    - Issues discovered
    - What should happen next
    - Current progress (X/Y features passing)
-3. Leave environment in working state
+4. Leave environment in working state
+
+### Progress Update Triggers
+
+Update `memory/claude-progress.md` **immediately** when:
+
+| Trigger | Required? |
+|---------|-----------|
+| Feature completed and verified | ✅ Mandatory |
+| Bug or issue discovered | ✅ Mandatory |
+| Before ending session | ✅ Mandatory |
+| After recovering from failure | ✅ Mandatory |
+| Mid-session (context getting full) | Optional |
+
+**Rule:** *"If you wouldn't remember it tomorrow, write it down now."*
 
 ## Feature List Rules
 

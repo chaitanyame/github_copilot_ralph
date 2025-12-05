@@ -182,13 +182,25 @@ gh pr create --base dev --head $BRANCH \
 
 ### Step 11: UPDATE PROGRESS NOTES
 
-Update `memory/claude-progress.md` with:
+**Update `memory/claude-progress.md` at these trigger points:**
+
+| Trigger | Required? | What to Document |
+|---------|-----------|------------------|
+| Feature completed | ✅ Mandatory | Feature ID, what was done, tests passed |
+| Bug/issue discovered | ✅ Mandatory | Issue description, steps to reproduce, fix status |
+| Before ending session | ✅ Mandatory | Session summary, next steps, X/Y features passing |
+| After recovering from failure | ✅ Mandatory | What broke, how it was fixed |
+| Mid-session checkpoint | Optional | Partial progress if context is getting full |
+
+**Content to include:**
 - What you accomplished this session
 - Which feature(s) you completed
 - Current Spec Kit branch name
-- Any issues discovered
+- Any issues discovered or fixed
 - What should be worked on next
 - Current completion status (e.g., "3/8 features passing")
+
+**Rule:** *"If you wouldn't remember it tomorrow, write it down now."*
 
 ### Step 12: END SESSION CLEANLY
 
