@@ -239,6 +239,12 @@ This framework implements patterns from:
 - [Anthropic: Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
 - [Anthropic Quickstart: Autonomous Coding](https://github.com/anthropics/claude-quickstarts/tree/main/autonomous-coding)
 
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to submit pull requests, report issues, and request features.
+
+Please note that this project is released with a [Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
