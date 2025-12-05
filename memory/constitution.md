@@ -46,10 +46,40 @@ Replace this constitution with your project-specific principles:
 1. **Project Vision**: What are you building?
 2. **Core Principles**: What values guide decisions?
 3. **Technical Standards**: What languages, frameworks, conventions?
-4. **Quality Gates**: What must pass before completion?
-5. **File Conventions**: How should files be organized?
+4. **Libraries**: What libraries should be used? (see below)
+5. **Quality Gates**: What must pass before completion?
+6. **File Conventions**: How should files be organized?
 
 Use `/speckit.constitution` to generate a project-specific constitution.
+
+## Libraries
+
+> Configure your project's library preferences here. If not specified, framework defaults apply.
+> See `.github/instructions/libraries.instructions.md` for all defaults.
+
+### Specified Libraries
+
+| Category | Library | Reason |
+|----------|---------|--------|
+| UI Testing | Playwright | (default) |
+| HTTP Client | fetch/requests | (default by language) |
+| _Add your overrides here_ | | |
+
+### Library Resolution Order
+
+1. Libraries specified in this section (highest priority)
+2. MCP tools if available (for simple operations)
+3. Framework defaults from `libraries.instructions.md`
+
+### Example Overrides
+
+```markdown
+| Category | Library | Reason |
+|----------|---------|--------|
+| UI Testing | Cypress | Team already uses Cypress |
+| HTTP Client | axios | Need request interceptors |
+| API Framework | Fastify | Performance requirements |
+```
 
 ## Coding Standards
 

@@ -60,6 +60,16 @@ function {functionName}({params}): {ReturnType}
 |------------|------|---------|
 | {dependency} | {internal/external} | {why needed} |
 
+### Libraries
+
+> If not specified, framework defaults from `.github/instructions/libraries.instructions.md` apply.
+
+| Category | Library | Reason for Override |
+|----------|---------|---------------------|
+| UI Testing | Playwright | (default) |
+| HTTP Client | {default or override} | {reason if overriding} |
+| {other} | {library} | {reason} |
+
 ## Implementation Notes
 
 ### Approach
