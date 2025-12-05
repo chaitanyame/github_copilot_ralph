@@ -1,13 +1,26 @@
 # /speckit.implement - Implement Single Task
 
-Implement a specific task from the task list using the @Coder agent pattern.
+Implement a specific task from the feature list using the @Coder agent pattern.
+
+> **Note**: This command runs on the feature branch created by `/speckit.specify`
+> All implementation happens on the Spec Kit feature branch (e.g., `003-real-time-chat`)
+
+## Prerequisites
+
+- Must be on a Spec Kit feature branch (e.g., `003-real-time-chat`)
+- Feature list must exist at `memory/feature_list.json`
 
 ## Instructions
 
-1. This command delegates to the @Coder agent for implementation
-2. Read `memory/claude-progress.md` for current state
-3. Read `memory/feature_list.json` for the task to implement
-4. Follow the incremental implementation pattern with **feature branching**
+1. Verify you're on the correct feature branch:
+   ```bash
+   BRANCH=$(git branch --show-current)
+   echo "Implementing on branch: $BRANCH"
+   ```
+
+2. This command delegates to the @Coder agent for implementation
+3. Read `memory/claude-progress.md` for current state
+4. Read `memory/feature_list.json` for the task to implement
 
 ## Usage
 
@@ -18,10 +31,10 @@ Implement a specific task from the task list using the @Coder agent pattern.
 
 ## Workflow
 
-1. **Create Feature Branch**
+1. **Verify On Feature Branch**
    ```bash
-   git checkout dev && git pull origin dev
-   git checkout -b feature/{id}-{short-name}
+   # Should return something like: 003-real-time-chat
+   git branch --show-current
    ```
 
 2. **Verify Environment**
@@ -34,31 +47,36 @@ Implement a specific task from the task list using the @Coder agent pattern.
    - Create Playwright tests in `tests/{feature}.spec.ts`
    - Test and verify end-to-end
 
-4. **Commit and Push**
+4. **Commit On Feature Branch**
    ```bash
    git add .
-   git commit -m "feat({id}): {feature name}"
-   git push origin feature/{id}-{short-name}
+   git commit -m "feat({task-id}): {feature name}"
+   git push origin $(git branch --show-current)
    ```
 
 5. **Mark Complete**
    - Update `feature_list.json`: change `passes: false` to `passes: true`
-   - Update `memory/claude-progress.md` with branch name
-   - Create PR or merge to dev
+   - Update `memory/claude-progress.md` with progress
 
-## Branch Naming
+## Branch Strategy
 
-- `feature/{id}-{short-name}` - New features (e.g., `feature/001-user-login`)
-- `fix/{id}-{description}` - Bug fixes
-- `refactor/{id}-{description}` - Refactoring
+```
+dev (main development)
+ └── 001-user-authentication (Spec Kit feature branch)
+      └── All implementation commits here
+      └── PR to dev when ALL features pass
+ └── 002-dashboard-widgets (another feature)
+      └── ...
+```
 
-## Important
+**Important**: No sub-branches! All work for a specification happens on the Spec Kit branch.
 
-- **Always work on a feature branch** - Never commit directly to dev/main
-- Only implement ONE task per invocation
-- Never modify feature descriptions or steps
-- Always verify before marking complete
-- Push branch before ending session
+## Completion
+
+When ALL features in `feature_list.json` pass:
+1. Push all changes to the feature branch
+2. Create PR from `{NNN}-{feature-name}` → `dev`
+3. Document in PR what was implemented
 
 ## Hand-off
 

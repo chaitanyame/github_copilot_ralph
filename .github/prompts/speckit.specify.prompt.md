@@ -1,12 +1,47 @@
 # /speckit.specify - Create Feature Specification
 
-Create a detailed specification for a new feature or component.
+Create a detailed specification for a new feature. This command automatically:
+1. Determines the next feature number (001, 002, 003...)
+2. Creates a semantic branch name from your description
+3. Creates the `specs/{branch-name}/` directory structure
+
+## Usage
+
+```
+/speckit.specify Real-time chat system with message history
+```
 
 ## Instructions
 
-1. Read `memory/constitution.md` first to understand project principles
-2. Gather requirements from user through clarifying questions if needed
-3. Create a specification file in `specs/{feature-name}.spec.md`
+### Step 1: Determine Feature Number
+```bash
+# Scan existing spec directories to find next number
+ls -d specs/[0-9][0-9][0-9]-* 2>/dev/null | sort | tail -1
+```
+- If no specs exist, use `001`
+- Otherwise, increment the highest number
+
+### Step 2: Create Branch Name
+- Format: `{NNN}-{semantic-name}`
+- Example: `003-real-time-chat`
+- Extract key words from user's feature description
+- Use lowercase, hyphenated
+
+### Step 3: Create Branch and Directory
+```bash
+# Create and switch to feature branch
+git checkout -b {NNN}-{semantic-name}
+
+# Create spec directory
+mkdir -p specs/{NNN}-{semantic-name}
+```
+
+### Step 4: Gather Requirements
+- Read `memory/constitution.md` to understand project principles
+- Ask clarifying questions if needed
+
+### Step 5: Create Specification
+- Create `specs/{NNN}-{semantic-name}/spec.md` using template below
 
 ## Specification Template
 
@@ -62,4 +97,31 @@ Create a detailed specification for a new feature or component.
 
 ## Output
 
-Create the spec file and confirm location: `specs/{feature-name}.spec.md`
+After running this command:
+1. ✅ New branch created: `{NNN}-{feature-name}`
+2. ✅ Directory created: `specs/{NNN}-{feature-name}/`
+3. ✅ Specification created: `specs/{NNN}-{feature-name}/spec.md`
+
+Report to user:
+```
+Created feature branch: 003-real-time-chat
+Created specification: specs/003-real-time-chat/spec.md
+
+Next steps:
+1. /speckit.plan - Create implementation plan
+2. /speckit.tasks - Generate task list
+3. /harness.generate - Convert to feature_list.json
+4. @Coder - Implement features on this branch
+```
+
+## Example
+
+```
+User: /speckit.specify Photo album organizer with tagging
+
+Agent:
+1. Scans specs/ → finds 002-* is highest
+2. Creates branch: 003-photo-album-organizer
+3. Creates: specs/003-photo-album-organizer/spec.md
+4. All subsequent work happens on this branch
+```

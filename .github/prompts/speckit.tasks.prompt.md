@@ -2,18 +2,38 @@
 
 Convert the implementation plan into a detailed task list ready for execution.
 
+> **Note**: This command runs on the feature branch created by `/speckit.specify`
+
+## Prerequisites
+
+- Must be on a feature branch (e.g., `003-real-time-chat`)
+- Plan must exist at `specs/{branch-name}/plan.md`
+
 ## Instructions
 
-1. Read `memory/constitution.md` for project principles
-2. Read `specs/plan.md` for the implementation plan
-3. Generate `specs/tasks.md` with detailed, actionable tasks
+1. Verify you're on the correct feature branch:
+   ```bash
+   BRANCH=$(git branch --show-current)
+   echo "Working on: $BRANCH"
+   ```
+
+2. Read `memory/constitution.md` for project principles
+
+3. Read the plan:
+   ```bash
+   BRANCH=$(git branch --show-current)
+   cat specs/$BRANCH/plan.md
+   ```
+
+4. Generate `specs/{branch-name}/tasks.md` with detailed, actionable tasks
 
 ## Task List Template
 
 ```markdown
 # Task List
 
-Generated from: [plan.md](specs/plan.md)
+**Feature Branch**: {branch-name}
+Generated from: [plan.md](plan.md)
 Date: {YYYY-MM-DD}
 
 ## Overview
@@ -64,6 +84,14 @@ T001 ─┬─> T002 ─> T004
 ...
 ```
 
+## Output
+
+Create `specs/{branch-name}/tasks.md`.
+
+Example: If on branch `003-real-time-chat`, create:
+- `specs/003-real-time-chat/tasks.md`
+
 ## Next Step
 
-After creating tasks.md, use `/harness.generate` to convert to `feature_list.json` for the @Coder agent.
+Run `/harness.generate` to convert tasks to `memory/feature_list.json` for the @Coder agent.
+All implementation happens on this same feature branch.

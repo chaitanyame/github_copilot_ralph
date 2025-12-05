@@ -1,68 +1,75 @@
 # Agent Harness Framework - Global Copilot Instructions
 
-This workspace uses the **Agent Harness Framework** for building long-lived autonomous agents within GitHub Copilot, based on [Anthropic's "Effective Harnesses for Long-Running Agents"](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents).
+This workspace uses the **Agent Harness Framework** for building long-lived autonomous agents within GitHub Copilot, based on [Anthropic's "Effective Harnesses for Long-Running Agents"](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) integrated with [GitHub Spec Kit](https://github.com/github/spec-kit).
 
 ## Framework Overview
 
 This framework solves the core challenge of long-running agents: **bridging context between sessions**. Each new session starts with no memory, so we use file-based artifacts to maintain continuity.
 
 Key artifacts:
+- **`specs/{branch}/`** - Specification, plan, and tasks per feature
 - **`memory/feature_list.json`** - Source of truth for all work (features with pass/fail status)
 - **`memory/claude-progress.md`** - Session-to-session progress notes
-- **`init.sh`** - Environment setup script (created by initializer)
-- **Git commits** - Incremental progress with descriptive messages
+- **Git branches** - Each specification gets its own branch (created by Spec Kit)
 
-## Two-Agent Pattern
+## Spec Kit + Harness Workflow
 
-1. **@Initializer** (Session 1) - Sets up foundation:
-   - Creates comprehensive `feature_list.json`
-   - Sets up project structure
-   - Creates `init.sh` for environment setup
-   - Makes initial git commit
+### Planning Phase (Spec Kit)
+1. `/speckit.specify` - Creates spec + **auto-creates branch** (e.g., `003-real-time-chat`)
+2. `/speckit.plan` - Creates implementation plan
+3. `/speckit.tasks` - Generates detailed task list
+4. `/harness.generate` - Converts tasks to `feature_list.json`
 
-2. **@Coder** (Sessions 2+) - Incremental progress:
-   - Reads progress notes and feature list
-   - Picks ONE feature to implement
-   - Verifies, implements, and commits
-   - Updates progress notes for next session
+### Implementation Phase (Harness)
+5. `@Coder` - Implements features one at a time on Spec Kit branch
+6. Repeat @Coder until all features pass
+7. Create PR to merge Spec Kit branch to dev
 
 ## Critical Principles
 
-1. **One feature at a time** - Don't try to do too much in one session
-2. **Verify before implementing** - Check existing features still work
-3. **Feature list is sacred** - Only modify the `passes` field
-4. **Leave clean state** - No half-finished work, all committed
-5. **Document for the next agent** - They have zero memory
+1. **Branches are created by Spec Kit** - Don't create feature branches manually
+2. **One feature at a time** - Don't try to do too much in one session
+3. **All work on Spec Kit branch** - No sub-branches
+4. **Feature list is sacred** - Only modify the `passes` field
+5. **Leave clean state** - No half-finished work, all committed
+6. **Document for the next agent** - They have zero memory
 
-## Available Agents
+## Available Commands
 
-| Agent | Purpose |
-|-------|---------|
-| `@Initializer` | First session setup (feature list, structure) |
-| `@Coder` | Incremental feature implementation |
-| `@Planner` | Strategic planning and task breakdown |
-| `@Researcher` | Context gathering and analysis |
-| `@Reviewer` | Code review and quality assurance |
-| `@Orchestrator` | Multi-agent workflow coordination |
+| Command | Purpose |
+|---------|---------|
+| `/speckit.specify` | Create spec + branch (e.g., `001-feature-name`) |
+| `/speckit.plan` | Create implementation plan |
+| `/speckit.tasks` | Generate task list |
+| `/harness.generate` | Convert tasks to feature_list.json |
+| `@Coder` | Implement features on Spec Kit branch |
 
 ## Memory System
 
 ```
+specs/
+├── 001-user-authentication/   # Created by /speckit.specify
+│   ├── spec.md
+│   ├── plan.md
+│   └── tasks.md
+├── 002-dashboard-widgets/
+│   └── ...
+
 memory/
-├── constitution.md      # Project principles (read before significant work)
-├── feature_list.json    # Source of truth for all features
+├── constitution.md      # Project principles
+├── feature_list.json    # Current feature tracking
 ├── claude-progress.md   # Session-to-session notes
-├── state/               # Agent checkpoints (JSON/MD)
-├── context/             # Persisted knowledge
-└── sessions/            # Session logs (audit trail)
+├── state/               # Agent checkpoints
+└── sessions/            # Session logs
 ```
 
 ## Getting Started
 
-1. Use `@Initializer` for the first session
-2. Use `@Coder` for subsequent sessions
-3. Always read `memory/claude-progress.md` first
-4. Always update progress notes before ending
+1. Run `/speckit.specify "Your feature description"`
+2. Run `/speckit.plan` then `/speckit.tasks`
+3. Run `/harness.generate` to create feature list
+4. Use `@Coder` to implement features (one per session)
+5. When all features pass, create PR to dev
 
 ## Custom Instructions
 

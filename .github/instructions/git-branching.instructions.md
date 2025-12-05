@@ -2,87 +2,101 @@
 
 Apply these guidelines for all Git operations in this project.
 
-## Branch Strategy
+## Branch Strategy (Spec Kit Integration)
+
+Branches are created by **Spec Kit's `/speckit.specify` command**, not manually.
 
 ```
 main (production)
   └── dev (integration)
-       ├── feature/001-user-login
-       ├── feature/002-dashboard
-       ├── fix/003-login-bug
-       └── refactor/004-auth-cleanup
+       ├── 001-user-authentication   ← Created by /speckit.specify
+       ├── 002-dashboard-widgets     ← Created by /speckit.specify
+       └── 003-real-time-chat        ← Created by /speckit.specify
+```
+
+## How Branches Are Created
+
+When you run `/speckit.specify`, it automatically:
+1. Scans existing specs to determine next feature number (001, 002, 003...)
+2. Creates a semantic branch name from your description
+3. Creates the branch and switches to it
+4. Creates `specs/{branch-name}/` directory structure
+
+**Example:**
+```bash
+# User runs:
+/speckit.specify Real-time chat system with message history
+
+# Spec Kit automatically:
+# 1. Determines next number: 003
+# 2. Creates branch: 003-real-time-chat
+# 3. Creates: specs/003-real-time-chat/spec.md
 ```
 
 ## Branch Naming Convention
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| Feature | `feature/{id}-{short-name}` | `feature/001-user-login` |
-| Bug Fix | `fix/{id}-{description}` | `fix/003-login-validation` |
-| Refactor | `refactor/{id}-{description}` | `refactor/004-auth-cleanup` |
+| Source | Pattern | Example |
+|--------|---------|---------|
+| Spec Kit | `{NNN}-{semantic-name}` | `003-real-time-chat` |
 | Hotfix | `hotfix/{description}` | `hotfix/critical-security` |
 
-## Workflow Per Feature
+> **Note**: Feature branches are created by Spec Kit. Hotfix branches are created manually.
 
-### 1. Start Feature
+## Workflow Per Specification
+
+### 1. Create Specification (creates branch)
 ```bash
-# Ensure you're on latest dev
+# Spec Kit creates the branch automatically
+/speckit.specify "Photo album organizer with tagging"
+# → Creates: 001-photo-album-organizer branch
+# → Creates: specs/001-photo-album-organizer/spec.md
+```
+
+### 2. Plan and Generate Tasks
+```bash
+# Still on 001-photo-album-organizer branch
+/speckit.plan       # → specs/001-photo-album-organizer/plan.md
+/speckit.tasks      # → specs/001-photo-album-organizer/tasks.md
+/harness.generate   # → memory/feature_list.json
+```
+
+### 3. Implementation (@Coder Sessions)
+```bash
+# All work happens on the Spec Kit branch
+git branch --show-current
+# → 001-photo-album-organizer
+
+# Multiple @Coder sessions, each implementing one feature
+git add .
+git commit -m "feat(T001): add photo upload component"
+git push origin 001-photo-album-organizer
+```
+
+### 4. Complete Specification
+```bash
+# When ALL features in feature_list.json pass:
+BRANCH=$(git branch --show-current)
+gh pr create --base dev --head $BRANCH \
+  --title "feat: Complete $BRANCH" \
+  --body "All features implemented and verified."
+```
+
+### 5. After PR Merge
+```bash
+# Switch to dev and clean up
 git checkout dev
 git pull origin dev
-
-# Create feature branch
-git checkout -b feature/{id}-{short-name}
-```
-
-### 2. During Development
-```bash
-# Commit frequently with meaningful messages
-git add .
-git commit -m "feat({id}): {description}"
-
-# Push to remote (backup + visibility)
-git push origin feature/{id}-{short-name}
-```
-
-### 3. Complete Feature
-```bash
-# Final commit
-git add .
-git commit -m "feat({id}): {feature name}
-
-- Implemented {details}
-- Added Playwright tests
-- All tests passing
-
-Closes #{id}"
-
-# Push final changes
-git push origin feature/{id}-{short-name}
-```
-
-### 4. Merge to Dev
-```bash
-# Option A: Create Pull Request (recommended)
-gh pr create --base dev --title "feat({id}): {feature name}"
-
-# Option B: Direct merge (if pre-approved)
-git checkout dev
-git merge feature/{id}-{short-name}
-git push origin dev
-
-# Clean up
-git branch -d feature/{id}-{short-name}
-git push origin --delete feature/{id}-{short-name}
+git branch -d 001-photo-album-organizer
 ```
 
 ## Commit Message Format
 
 ```
-type(scope): subject
+type(task-id): subject
 
 body (optional)
 
-footer (optional)
+Part of: {branch-name}
 ```
 
 ### Types
@@ -95,46 +109,99 @@ footer (optional)
 
 ### Examples
 ```bash
-git commit -m "feat(001): add user login form"
-git commit -m "fix(003): correct email validation regex"
-git commit -m "test(001): add Playwright tests for login"
+git commit -m "feat(T001): add user login form
+
+Part of: 001-user-authentication"
+
+git commit -m "fix(T003): correct email validation regex
+
+Part of: 001-user-authentication"
+
+git commit -m "test(T001): add Playwright tests for login
+
+Part of: 001-user-authentication"
 ```
 
-## Tracking Features to Branches
+## Tracking Progress
 
-In `memory/claude-progress.md`, always note the branch:
+In `memory/claude-progress.md`, always note the Spec Kit branch:
 
 ```markdown
 ### Session 4 - 2024-12-04
 
-**Feature**: #001 User Login
-**Branch**: `feature/001-user-login`
-**Status**: ✅ Complete
-**PR**: #15 (merged)
+**Spec Kit Branch**: `001-user-authentication`
+**Feature Implemented**: T003 - Email Validation
+**Status**: ✅ Complete (3/8 features passing)
+
+**Next Session**:
+- Implement T004 - Password Reset
 ```
 
 ## Recovery
 
-### If branch is broken
+### If current branch is broken
 ```bash
-# Abandon changes and start fresh
-git checkout dev
-git branch -D feature/{id}-{short-name}
-git checkout -b feature/{id}-{short-name}
+# Check what went wrong
+git log --oneline -10
+git diff
+
+# Revert last commit if needed
+git revert HEAD
+
+# Or reset to last known good state
+git reset --hard HEAD~1
 ```
 
-### If dev is broken
+### If specification is abandoned
 ```bash
-# Revert last merge
+# Switch back to dev
 git checkout dev
-git revert -m 1 HEAD
-git push origin dev
+
+# Delete the broken branch
+git branch -D 001-broken-feature
+git push origin --delete 001-broken-feature
 ```
 
 ## Rules
 
-1. **Never commit directly to main or dev**
-2. **One feature = One branch**
-3. **Push before ending session** (backup)
-4. **Include feature ID in branch name**
-5. **Delete branches after merge**
+1. **Branches are created by `/speckit.specify`** - Don't create feature branches manually
+2. **One specification = One branch** - All related features on same branch
+3. **No sub-branches** - All implementation commits on the Spec Kit branch
+4. **Push before ending session** (backup)
+5. **PR to dev when all features pass**
+6. **Delete branches after PR merge**
+
+## Complete Workflow Diagram
+
+```
+                  /speckit.specify
+                         │
+                         ▼
+              ┌──────────────────────┐
+              │  001-feature-name    │ ← Branch created
+              │  (Spec Kit branch)   │
+              └──────────────────────┘
+                         │
+            ┌────────────┼────────────┐
+            ▼            ▼            ▼
+        /speckit.plan  /speckit.tasks  /harness.generate
+            │            │            │
+            ▼            ▼            ▼
+        plan.md      tasks.md    feature_list.json
+                         │
+                         ▼
+              ┌──────────────────────┐
+              │  @Coder Sessions     │
+              │  (implement 1 at a   │
+              │   time, commit to    │
+              │   same branch)       │
+              └──────────────────────┘
+                         │
+                         ▼
+              All features pass?
+                    │
+              Yes ──┴── No → More @Coder sessions
+                    │
+                    ▼
+              PR to dev → Merge → Delete branch
+```

@@ -3,6 +3,7 @@
 This file provides cross-agent instructions compatible with multiple AI assistants (Claude, Copilot, Cursor, etc.).
 
 > Based on [Anthropic's "Effective Harnesses for Long-Running Agents"](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+> Integrated with [GitHub Spec Kit](https://github.com/github/spec-kit) SDD workflow
 
 ## The Long-Running Agent Problem
 
@@ -12,40 +13,50 @@ Agents working across many sessions face a core challenge: **each new session st
 - Leave the environment in a broken state
 - Waste time figuring out what happened previously
 
-## Solution: Two-Agent Pattern
+## Solution: Spec Kit + Harness Integration
 
-### 1. Initializer Agent (Session 1)
-Sets up the foundation:
-- Creates `memory/feature_list.json` with all features/tasks
-- Sets up project structure
-- Creates `init.sh` for environment setup
-- Makes initial git commit
-- Documents everything for future agents
+### Spec Kit Workflow (Planning Phase)
+1. `/speckit.specify` - Creates specification + **auto-creates branch**
+2. `/speckit.plan` - Creates implementation plan
+3. `/speckit.tasks` - Generates task list
+4. `/harness.generate` - Converts tasks to feature_list.json
 
-### 2. Coder Agent (Sessions 2+)
-Makes incremental progress:
-- Reads progress notes to get bearings
-- Verifies existing features still work
-- Picks ONE feature to implement
-- Tests and verifies before marking complete
-- Commits progress and updates notes
+### Harness Workflow (Implementation Phase)
+5. `@Coder` - Implements features one at a time on Spec Kit branch
+6. Repeat @Coder until all features pass
+7. Create PR to merge to dev
+
+## Branch Strategy
+
+Branches are created by **Spec Kit**, not manually:
+
+```
+dev (integration branch)
+ └── 001-user-authentication   ← /speckit.specify creates this
+      └── All @Coder commits here
+      └── PR to dev when complete
+ └── 002-dashboard-widgets     ← Another /speckit.specify
+      └── ...
+```
 
 ## Critical Artifacts
 
 | Artifact | Purpose |
 |----------|---------|
-| `memory/feature_list.json` | Source of truth - all features with pass/fail status |
+| `specs/{branch}/spec.md` | Feature specification |
+| `specs/{branch}/plan.md` | Implementation plan |
+| `specs/{branch}/tasks.md` | Detailed task list |
+| `memory/feature_list.json` | Source of truth - features with pass/fail |
 | `memory/claude-progress.md` | Session notes - what happened, what's next |
-| `init.sh` | Environment setup script |
-| Git history | Incremental progress, ability to revert |
+| Git branch | All work isolated per specification |
 
 ## Agent Session Protocol
 
 ### Starting a Session
-1. Run `pwd` to see working directory
+1. Run `git branch --show-current` to verify you're on Spec Kit branch
 2. Read `memory/claude-progress.md` for context
 3. Read `memory/feature_list.json` to see all work
-4. Check `git log --oneline -20` for recent changes
+4. Read `specs/{branch}/spec.md` for specification context
 5. Run `init.sh` to start servers (if applicable)
 6. Verify 1-2 passing features still work
 
@@ -54,10 +65,11 @@ Makes incremental progress:
 2. Implement the feature completely
 3. Test and verify end-to-end
 4. Update `feature_list.json` (ONLY the `passes` field)
-5. Commit with descriptive message
+5. Commit on the Spec Kit branch
 
 ### Ending a Session
-1. Ensure all work is committed
+1. Ensure all work is committed to Spec Kit branch
+2. Push to remote
 2. Update `memory/claude-progress.md` with:
    - What was accomplished
    - Issues discovered
@@ -92,6 +104,14 @@ If the environment is broken:
 5. **Quality over speed** - Production-ready is the goal
 
 ## File Conventions
+
+- Agent definitions: `.github/agents/*.agent.md`
+- Prompt commands: `.github/prompts/*.prompt.md`
+- Instructions: `.github/instructions/*.instructions.md`
+- Feature tracking: `memory/feature_list.json`
+- Progress notes: `memory/claude-progress.md`
+- State files: `memory/state/*.json`
+- Session logs: `memory/sessions/YYYY-MM-DD-HH-MM.md`## File Conventions
 
 - Agent definitions: `.github/agents/*.agent.md`
 - Prompt commands: `.github/prompts/*.prompt.md`
