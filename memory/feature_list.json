@@ -1,29 +1,31 @@
 {
+  "_comment": "This is a template. Replace with your project's features using /harness.generate",
   "_meta": {
     "description": "Feature list tracking - source of truth for all work",
     "version": "1.0.0",
     "created": null,
-    "last_updated": null,
-    "total_features": 0,
-    "passing_features": 0
+    "last_updated": null
   },
-  "_instructions": {
-    "usage": "This file tracks all features/tasks for the project",
-    "rules": [
-      "ONLY modify the 'passes' field when a feature is verified complete",
-      "NEVER remove or edit feature descriptions",
-      "NEVER modify test steps",
-      "NEVER reorder features",
-      "Add new features at the end of the list",
-      "Always verify with testing before marking passes: true"
-    ],
-    "categories": {
-      "setup": "Project initialization and configuration",
-      "functional": "Core functionality features",
-      "style": "UI/UX and visual requirements",
-      "integration": "External service integrations",
-      "testing": "Test coverage requirements"
-    }
+  "_rules": {
+    "allowed": "ONLY change 'passes' field from false to true when verified",
+    "forbidden": [
+      "Never remove features",
+      "Never edit descriptions",
+      "Never modify steps",
+      "Never reorder features"
+    ]
+  },
+  "_example": {
+    "id": 1,
+    "name": "Example Feature",
+    "description": "What this feature does",
+    "priority": "high",
+    "passes": false,
+    "steps": [
+      "Step 1 - Implementation action",
+      "Step 2 - Another action",
+      "Step 3 - Verify feature works"
+    ]
   },
   "features": []
 }

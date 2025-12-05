@@ -1,41 +1,59 @@
-# Project Constitution
+# Agent Harness Framework - Constitution
 
-This document defines the core principles and guidelines that govern all agent behavior in this project.
+> This is the **template constitution**. When using this framework for a real project, update this file with your project-specific principles using `/speckit.constitution`.
 
-## Mission
+This document defines the core principles that govern all agent behavior.
 
-Enable developers to build and run long-lived autonomous agents within VS Code GitHub Copilot through a structured, maintainable framework.
+## Framework Mission
 
-## Core Values
+Enable developers to run **long-lived autonomous agents** within VS Code GitHub Copilot through file-based state management and incremental progress patterns.
 
-### 1. Developer Experience First
-- The framework should be intuitive and easy to adopt
-- Provide sensible defaults that work out of the box
-- Make customization straightforward when needed
+## Core Principles
 
-### 2. Transparency Over Magic
-- Agents must explain their reasoning
-- All state changes should be visible and auditable
-- No hidden side effects or implicit behaviors
+### 1. Incremental Progress
+- One feature at a time
+- Complete before moving on
+- Commit after each success
+- Don't try to do too much
 
-### 3. Safety Through Checkpoints
-- Persist state before risky operations
-- Enable rollback when things go wrong
-- Require human approval for destructive actions
+### 2. File-Based Memory
+- All state lives in files
+- `feature_list.json` is the source of truth
+- Progress notes bridge sessions
+- Git history enables rollback
 
-### 4. Composability
-- Agents should do one thing well
-- Complex workflows emerge from agent composition
-- Prefer handoffs over monolithic agents
+### 3. Verify Before Claiming
+- Test features before marking complete
+- Check existing features still work
+- Quality over speed
 
-### 5. Cross-Session Continuity
-- Work should survive session restarts
-- State must be recoverable from files
-- Context should accumulate over time
+### 4. Document for Amnesia
+- Next agent has zero memory
+- Write clear progress notes
+- Explain decisions
+- Leave clean state
+
+### 5. Feature List is Sacred
+- Only change `passes` field
+- Never remove features
+- Never edit descriptions
+- Never modify steps
+
+## When Using This Template
+
+Replace this constitution with your project-specific principles:
+
+1. **Project Vision**: What are you building?
+2. **Core Principles**: What values guide decisions?
+3. **Technical Standards**: What languages, frameworks, conventions?
+4. **Quality Gates**: What must pass before completion?
+5. **File Conventions**: How should files be organized?
+
+Use `/speckit.constitution` to generate a project-specific constitution.
 
 ## Coding Standards
 
-### When Generating Code
+When generating or modifying code:
 - Follow existing project conventions
 - Prefer clarity over cleverness
 - Include appropriate error handling

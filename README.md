@@ -146,17 +146,57 @@ Before ending any session:
 | `@Reviewer` | Quality assurance | Review completed work |
 | `@Orchestrator` | Multi-agent coordination | Complex multi-step workflows |
 
+## Workflows
+
+### Spec-Driven Development (Recommended)
+
+Use this workflow for new projects or features:
+
+```
+/speckit.constitution  →  Define project principles
+       ↓
+/speckit.specify      →  Create feature specifications
+       ↓
+/speckit.plan         →  Create implementation plan
+       ↓
+/speckit.tasks        →  Generate detailed task list
+       ↓
+/harness.generate     →  Convert to feature_list.json
+       ↓
+@Coder                →  Implement incrementally
+```
+
+### Quick Start Workflow
+
+Use this for simpler projects:
+
+```
+@Initializer          →  Set up everything at once
+       ↓
+@Coder                →  Implement features
+```
+
 ## Prompt Commands
 
-Use these in VS Code Copilot Chat:
+### Spec Kit Commands
 
-- `/init` - Initialize project
-- `/specify` - Create specification
-- `/plan` - Create implementation plan
-- `/execute` - Execute a plan
-- `/review` - Review implementation
-- `/checkpoint` - Save current state
-- `/resume` - Resume from checkpoint
+| Command | Purpose |
+|---------|---------|
+| `/speckit.constitution` | Create project principles and standards |
+| `/speckit.specify` | Create detailed feature specification |
+| `/speckit.plan` | Create implementation plan from specs |
+| `/speckit.tasks` | Generate actionable task list |
+| `/speckit.implement` | Implement a specific task |
+
+### Harness Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/harness.generate` | Convert tasks.md to feature_list.json |
+| `/harness.status` | View progress dashboard |
+| `/harness.verify` | Verify passing features |
+| `/harness.checkpoint` | Save session state |
+| `/harness.resume` | Resume from checkpoint |
 
 ## Customization
 
