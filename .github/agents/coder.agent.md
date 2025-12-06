@@ -47,15 +47,34 @@ cat memory/claude-progress.md
 # 5. Check the feature list
 cat memory/feature_list.json
 
-# 6. Read the specification for context
+# 6. Check for open issues
+cat memory/issues.json 2>/dev/null || echo "No issues file yet"
+
+# 7. Read the specification for context
 cat specs/$BRANCH/spec.md
 
-# 7. Check recent git history
+# 8. Check recent git history
 git log --oneline -10
 
-# 8. Count remaining features
+# 9. Count remaining features
 grep -c '"passes": false' memory/feature_list.json
+
+# 10. Count open issues (if any)
+grep -c '"status": "open"' memory/issues.json 2>/dev/null || echo "0"
 ```
+
+### Step 1.5: CHECK FOR CRITICAL ISSUES
+
+Before proceeding with features, check if there are critical issues that need immediate attention:
+
+```bash
+# Check for critical open issues
+grep -A5 '"priority": "critical"' memory/issues.json 2>/dev/null | grep '"status": "open"'
+```
+
+If critical issues exist:
+- Address them FIRST before continuing with features
+- Follow the issue resolution workflow in Step 10.5
 
 ### Step 2: START SERVERS (If Applicable)
 
@@ -256,6 +275,82 @@ gh pr create --base dev --head $BRANCH \
 - Playwright tests: pass/fail
 - Manual verification: done"
 ```
+
+### Step 10.5: PROCESS OPEN ISSUES
+
+After all features pass (or at end of session), check for open issues:
+
+```bash
+# List open issues
+grep -B2 '"status": "open"' memory/issues.json
+```
+
+**For each open issue:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  📋 ISSUE PROCESSING WORKFLOW                                   │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1. Check issue category:                                       │
+│     - bug: TDD REQUIRED (regression test mandatory)            │
+│     - hotfix/enhancement/adhoc: TDD optional                   │
+│                                                                 │
+│  2. Check branch assignment:                                    │
+│     - same_branch: true → Fix on current branch                │
+│     - same_branch: false → Switch to hotfix branch             │
+│                                                                 │
+│  3. For BUGS - TDD Gate:                                        │
+│     □ Create: tests/issues/I{id}-{desc}.spec.ts                │
+│     □ Run test → verify FAILS (reproduces bug)                 │
+│     □ Fix the bug                                               │
+│     □ Run test → verify PASSES                                  │
+│     □ Update issues.json:                                       │
+│       - regression_test_file: "tests/issues/..."               │
+│       - test_fails_before: true                                │
+│       - test_passes_after: true                                │
+│       - status: "closed"                                       │
+│       - closed_at: "ISO timestamp"                             │
+│                                                                 │
+│  4. For NON-BUGS:                                               │
+│     □ Implement the fix/change                                  │
+│     □ Verify it works                                           │
+│     □ Update issues.json:                                       │
+│       - status: "closed"                                       │
+│       - closed_at: "ISO timestamp"                             │
+│                                                                 │
+│  5. Commit with issue reference:                                │
+│     git commit -m "fix(I{id}): {description}"                  │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Issue Discovery During Implementation:**
+
+If you discover a bug while implementing a feature:
+1. Note it in `memory/claude-progress.md`
+2. Add to `memory/issues.json` using this format:
+   ```json
+   {
+     "id": "I{next-number}",
+     "category": "bug",
+     "status": "open",
+     "priority": "{assess priority}",
+     "description": "{what's broken}",
+     "steps_to_reproduce": ["Step 1", "Step 2"],
+     "same_branch": true,
+     "branch": null,
+     "related_feature_id": {current feature id},
+     "discovered_in_session": "{current session}",
+     "regression_test_file": null,
+     "test_fails_before": false,
+     "test_passes_after": false,
+     "created_at": "{ISO timestamp}",
+     "closed_at": null
+   }
+   ```
+3. If critical: Stop current feature, fix immediately
+4. If not critical: Continue with feature, address issue after
 
 ### Step 11: UPDATE PROGRESS NOTES
 

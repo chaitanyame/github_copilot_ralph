@@ -97,6 +97,7 @@ Makes incremental progress:
 ├── memory/
 │   ├── constitution.md   # Project principles
 │   ├── feature_list.json # Source of truth
+│   ├── issues.json       # Adhoc issues and bugs
 │   ├── claude-progress.md # Session notes
 │   ├── state/            # Agent checkpoints
 │   ├── context/          # Persisted knowledge
@@ -197,6 +198,8 @@ Use this for simpler projects:
 | `/harness.verify` | Verify passing features |
 | `/harness.checkpoint` | Save session state |
 | `/harness.resume` | Resume from checkpoint |
+| `/harness.issue` | Add adhoc bug, hotfix, or request |
+| `/harness.issues` | View issue tracking dashboard |
 
 ## Customization
 

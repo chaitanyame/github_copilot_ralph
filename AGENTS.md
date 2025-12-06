@@ -47,6 +47,7 @@ dev (integration branch)
 | `specs/{branch}/plan.md` | Implementation plan |
 | `specs/{branch}/tasks.md` | Detailed task list |
 | `memory/feature_list.json` | Source of truth - features with pass/fail |
+| `memory/issues.json` | Adhoc issues, bugs, and requests |
 | `memory/claude-progress.md` | Session notes - what happened, what's next |
 | Git branch | All work isolated per specification |
 
@@ -141,6 +142,80 @@ The `memory/feature_list.json` is sacred:
 - ❌ NEVER modify steps
 - ❌ NEVER reorder features
 
+## Issue Tracking
+
+Issues are for adhoc work discovered outside the normal Spec Kit workflow.
+
+### When to Create Issues
+- Bugs discovered during implementation
+- User requests after feature completion
+- Hotfixes needed for production
+- Enhancements not in original spec
+
+### Issue Commands
+| Command | Purpose |
+|---------|---------|
+| `/harness.issue "description"` | Add new issue |
+| `/harness.issues` | View all issues |
+
+### Issue Categories
+| Category | TDD Required? | Description |
+|----------|---------------|-------------|
+| `bug` | ✅ Yes | Regression test mandatory |
+| `hotfix` | Optional | Urgent fix |
+| `enhancement` | Recommended | Improvement |
+| `adhoc` | No | One-off task |
+
+### Issue Branch Policy
+
+By default, issues are fixed on the **current branch** (same branch as features).
+
+When `/harness.issue` is run, the agent asks:
+```
+Should this be fixed on:
+[1] Current branch (default)
+[2] Separate hotfix branch
+```
+
+If separate branch chosen: `hotfix/I{id}-{description}`
+
+### TDD for Bugs
+
+Bugs MUST have regression tests:
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  🐛 BUG FIX GATE                                                 │
+├──────────────────────────────────────────────────────────────────┤
+│  □ Create: tests/issues/I{id}-{desc}.spec.ts                    │
+│  □ Run test → verify FAILS (reproduces bug)                     │
+│  □ Fix the bug                                                   │
+│  □ Run test → verify PASSES                                      │
+│  □ Update issues.json: status: "closed"                         │
+│                                                                  │
+│  ⛔ Cannot close bug without regression test                     │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+## PR Readiness Rules
+
+A PR can only be created when:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  ✅ PR READY CHECKLIST                                           │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  □ All features in feature_list.json have passes: true         │
+│  □ No critical or high priority issues open                     │
+│  □ All bugs have regression tests (test_passes_after: true)    │
+│  □ All tests pass: npx playwright test                          │
+│                                                                  │
+│  Non-critical issues (medium/low) can remain open for next      │
+│  session - they don't block PR creation.                        │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
 ## Failure Recovery
 
 If the environment is broken:
@@ -164,6 +239,8 @@ If the environment is broken:
 - Prompt commands: `.github/prompts/*.prompt.md`
 - Instructions: `.github/instructions/*.instructions.md`
 - Feature tracking: `memory/feature_list.json`
+- Issue tracking: `memory/issues.json`
 - Progress notes: `memory/claude-progress.md`
 - State files: `memory/state/*.json`
 - Session logs: `memory/sessions/YYYY-MM-DD-HH-MM.md`
+- Issue tests: `tests/issues/I{id}-{description}.spec.ts`

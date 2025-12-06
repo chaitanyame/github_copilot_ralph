@@ -7,7 +7,7 @@ This file bridges context between agent sessions. Each agent reads this at the s
 **Project**: Agent Harness Framework (Template Repository)
 **Status**: Ready for use as template
 **Features**: Template - not applicable
-**Last Updated**: 2024-12-04
+**Last Updated**: 2025-12-06
 
 ## What's Been Done
 
@@ -21,8 +21,103 @@ This is a **template repository** for building long-lived agents. It includes:
 - ✅ Templates for specs, plans, tasks, and feature lists
 - ✅ VS Code configuration for Copilot integration
 - ✅ **Playwright testing support** - instructions and templates
+- ✅ **TDD enforcement gates** - mandatory test-first workflow
+- ✅ **Issue tracking system** - adhoc bugs, hotfixes, and requests
 
 ## Session History
+
+### Session 6 - 2025-12-06
+
+**Feature**: Add Adhoc Issue Tracking System
+**Status**: ✅ Complete
+
+#### Accomplished
+- Created `templates/issues-template.json`:
+  - 3-state lifecycle: open → in-progress → closed
+  - Categories: bug, hotfix, enhancement, adhoc
+  - TDD enforcement for bugs (regression tests mandatory)
+  - Branch policy: same-branch by default, optional hotfix branch
+  - Related feature linking and session discovery tracking
+
+- Created `/harness.issue` prompt (`.github/prompts/harness.issue.prompt.md`):
+  - Interactive issue capture with category/priority
+  - Branch decision prompt: same branch vs separate hotfix branch
+  - TDD reminder for bugs
+  - Issue ID generation (I001, I002, etc.)
+
+- Created `/harness.issues` prompt (`.github/prompts/harness.issues.prompt.md`):
+  - Issue dashboard with status summary
+  - PR readiness check (blocking if critical issues open)
+  - Priority-sorted issue listing
+  - Stale issue detection (>7 days)
+
+- Updated `@Coder` agent (`.github/agents/coder.agent.md`):
+  - Step 1: Now reads issues.json
+  - Step 1.5: Check for critical issues before features
+  - Step 10.5: Issue processing workflow with TDD gates for bugs
+  - Issue discovery protocol during implementation
+
+- Updated `/harness.status` prompt:
+  - Added issues summary section
+  - Added PR readiness check box
+
+- Updated `AGENTS.md`:
+  - Added issues.json to critical artifacts
+  - Added Issue Tracking section with commands and categories
+  - Added PR Readiness Rules (blocking on critical issues)
+  - Added issue tests to file conventions
+
+- Created supporting files:
+  - `tests/issues/README.md` - documentation for issue regression tests
+  - `templates/tests/issue.spec.template.ts` - template for bug regression tests
+  - Updated `README.md` with new harness commands and directory structure
+
+#### Files Changed
+- `templates/issues-template.json` (new)
+- `.github/prompts/harness.issue.prompt.md` (new)
+- `.github/prompts/harness.issues.prompt.md` (new)
+- `.github/agents/coder.agent.md` (updated)
+- `.github/prompts/harness.status.prompt.md` (updated)
+- `AGENTS.md` (updated)
+- `README.md` (updated)
+- `tests/issues/README.md` (new)
+- `templates/tests/issue.spec.template.ts` (new)
+
+#### Issue Workflow Now
+```
+User discovers issue
+       ↓
+/harness.issue "description"
+       ↓
+Agent asks: Same branch or separate?
+       ↓
+Issue added to memory/issues.json
+       ↓
+@Coder processes (TDD for bugs)
+       ↓
+Issue closed, PR ready check
+```
+
+---
+
+### Session 5 - 2025-12-05
+
+**Feature**: Strengthen TDD Enforcement
+**Status**: ✅ Complete
+
+#### Accomplished
+- Added TDD enforcement gates to feature_list template
+- Added pre/post implementation gates to coder.agent.md
+- Strengthened TDD blocks in constitution.md
+- Added TDD gates to speckit.implement prompt
+- Updated AGENTS.md and copilot-instructions.md with TDD gates
+
+#### Key Changes
+- Features now require: test_file, test_fails_before, test_passes_after
+- Visual gate boxes force attention before implementation
+- Cannot set passes:true without test_passes_after:true
+
+---
 
 ### Session 4 - 2024-12-04
 
