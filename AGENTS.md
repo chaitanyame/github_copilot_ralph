@@ -64,6 +64,37 @@ dev (integration branch)
 
 > ⚠️ **BLOCKING**: Do NOT write implementation code before the test exists and fails.
 
+## 🛑 TDD ENFORCEMENT GATES
+
+Every feature implementation MUST pass through these gates:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  GATE 1: PRE-IMPLEMENTATION (Before writing ANY feature code)   │
+├──────────────────────────────────────────────────────────────────┤
+│  □ Create test file: tests/{feature}.spec.ts                    │
+│  □ Run: npx playwright test tests/{feature}.spec.ts             │
+│  □ Verify: Test FAILS                                           │
+│  □ Update feature_list.json:                                    │
+│    - "test_file": "tests/{feature}.spec.ts"                     │
+│    - "test_fails_before": true                                  │
+│                                                                  │
+│  ⛔ CANNOT write implementation code until gate passes          │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│  GATE 2: POST-IMPLEMENTATION (Before marking passes:true)       │
+├──────────────────────────────────────────────────────────────────┤
+│  □ Run: npx playwright test tests/{feature}.spec.ts             │
+│  □ Verify: Test PASSES                                          │
+│  □ Update feature_list.json:                                    │
+│    - "test_passes_after": true                                  │
+│    - "passes": true                                             │
+│                                                                  │
+│  ⛔ CANNOT set passes:true without test_passes_after:true       │
+└──────────────────────────────────────────────────────────────────┘
+```
+
 1. Pick ONE high-priority feature with `passes: false`
 2. **TDD Step 1 (RED)**: Create a failing automated test in `tests/{feature}.spec.ts`
    - Run test to confirm it FAILS: `npx playwright test tests/{feature}.spec.ts`

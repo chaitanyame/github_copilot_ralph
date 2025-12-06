@@ -28,6 +28,30 @@ Key artifacts:
 ## Critical Principles
 
 1. **TDD is MANDATORY** - Write failing test FIRST, then implement, then refactor. Never implement without a failing test.
+
+### 🛑 TDD ENFORCEMENT GATES (Non-Negotiable)
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  GATE 1: Before writing ANY implementation code                 │
+├──────────────────────────────────────────────────────────────────┤
+│  □ Create test: tests/{feature}.spec.ts                         │
+│  □ Run: npx playwright test tests/{feature}.spec.ts             │
+│  □ Verify: Test FAILS                                           │
+│  □ Update feature_list.json: test_fails_before: true            │
+│  ⛔ CANNOT proceed until this gate passes                       │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│  GATE 2: Before marking passes:true                             │
+├──────────────────────────────────────────────────────────────────┤
+│  □ Run: npx playwright test tests/{feature}.spec.ts             │
+│  □ Verify: Test PASSES                                          │
+│  □ Update feature_list.json: test_passes_after: true            │
+│  ⛔ CANNOT set passes:true without test_passes_after:true       │
+└──────────────────────────────────────────────────────────────────┘
+```
+
 2. **Branches are created by Spec Kit** - Don't create feature branches manually
 3. **One feature at a time** - Don't try to do too much in one session
 4. **All work on Spec Kit branch** - No sub-branches

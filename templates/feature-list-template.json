@@ -1,7 +1,7 @@
 {
   "_meta": {
     "description": "Feature list for [PROJECT NAME]",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "created": "YYYY-MM-DDTHH:MM:SSZ",
     "last_updated": "YYYY-MM-DDTHH:MM:SSZ",
     "total_features": 0,
@@ -17,6 +17,17 @@
       "Add new features at the end of the list",
       "Always verify with testing before marking passes: true"
     ],
+    "tdd_enforcement": {
+      "BLOCKING": "⚠️ DO NOT write implementation code until test_file exists and test_fails_before is true",
+      "workflow": [
+        "1. Create test file in tests/{feature}.spec.ts",
+        "2. Run test - verify it FAILS (set test_fails_before: true)",
+        "3. ONLY THEN write implementation code",
+        "4. Run test - verify it PASSES (set test_passes_after: true)",
+        "5. Set passes: true"
+      ],
+      "violation": "Setting passes:true without test_passes_after:true is a TDD violation"
+    },
     "categories": {
       "setup": "Project initialization and configuration",
       "functional": "Core functionality features",
@@ -43,6 +54,9 @@
         "Run build command",
         "Verify no errors"
       ],
+      "test_file": null,
+      "test_fails_before": false,
+      "test_passes_after": false,
       "passes": false
     },
     {
@@ -55,6 +69,9 @@
         "Perform action",
         "Verify expected result"
       ],
+      "test_file": null,
+      "test_fails_before": false,
+      "test_passes_after": false,
       "passes": false
     }
   ]

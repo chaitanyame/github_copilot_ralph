@@ -14,6 +14,34 @@ Enable developers to run **long-lived autonomous agents** within VS Code GitHub 
 
 > ⚠️ **NON-NEGOTIABLE**: Implementation code MUST NOT be written before a failing test exists.
 
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  🛑 TDD IS A HARD GATE - NOT A SUGGESTION                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  BEFORE writing ANY implementation code:                        │
+│                                                                 │
+│  1. Create test file: tests/{feature}.spec.ts                  │
+│  2. Run test: npx playwright test tests/{feature}.spec.ts      │
+│  3. VERIFY test FAILS                                          │
+│  4. Update feature_list.json:                                  │
+│     - test_file: "tests/{feature}.spec.ts"                     │
+│     - test_fails_before: true                                  │
+│                                                                 │
+│  ONLY THEN may you write implementation code.                  │
+│                                                                 │
+│  AFTER implementation passes:                                   │
+│  5. Run test: verify it PASSES                                  │
+│  6. Update feature_list.json:                                  │
+│     - test_passes_after: true                                  │
+│     - passes: true                                             │
+│                                                                 │
+│  ⛔ Setting passes:true without test_passes_after:true          │
+│     is a TDD VIOLATION                                         │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 - **RED**: Write the test FIRST - verify it FAILS
 - **GREEN**: Implement ONLY enough code to pass the test
 - **REFACTOR**: Clean up while keeping tests green

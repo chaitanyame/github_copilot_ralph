@@ -83,6 +83,33 @@ Look at `memory/feature_list.json` and find the highest-priority feature with `"
 > ⚠️ **BLOCKING REQUIREMENT**: You MUST NOT write implementation code before the test exists and fails.
 > Skipping this step is a violation of the framework principles.
 
+## 🛑 TDD GATE - MANDATORY VERIFICATION
+
+Before writing ANY implementation code, you MUST complete this checklist:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ⚠️  TDD GATE - CANNOT PROCEED WITHOUT COMPLETING THESE STEPS   │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  □ 1. TEST FILE CREATED: tests/{feature}.spec.ts exists        │
+│       → If NO: Create it NOW before any implementation         │
+│                                                                 │
+│  □ 2. TEST RUNS AND FAILS:                                      │
+│       → Run: npx playwright test tests/{feature}.spec.ts       │
+│       → Expected output: FAILED                                 │
+│       → If PASSES: Your test is wrong, fix the test first      │
+│                                                                 │
+│  □ 3. UPDATE FEATURE LIST (before implementing):                │
+│       → Set "test_file": "tests/{feature}.spec.ts"             │
+│       → Set "test_fails_before": true                          │
+│                                                                 │
+│  ⛔ STOP: Do not write implementation code until all boxes      │
+│          above are checked. This is NON-NEGOTIABLE.             │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 **Test-Driven Development is NON-NEGOTIABLE:**
 
 #### Phase 1: RED (Create Failing Test)
@@ -122,6 +149,32 @@ npx playwright test tests/{feature}.spec.ts
 # Expected: PASS
 
 # 3. Verify end-to-end in browser
+```
+
+## 🛑 POST-IMPLEMENTATION GATE - MANDATORY VERIFICATION
+
+Before marking feature as complete, you MUST verify:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ✅ POST-IMPLEMENTATION GATE - VERIFY BEFORE MARKING COMPLETE   │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  □ 1. TEST PASSES:                                              │
+│       → Run: npx playwright test tests/{feature}.spec.ts       │
+│       → Expected output: PASSED                                 │
+│                                                                 │
+│  □ 2. UPDATE FEATURE LIST:                                      │
+│       → Set "test_passes_after": true                          │
+│       → Set "passes": true                                     │
+│                                                                 │
+│  □ 3. ALL TESTS STILL PASS:                                     │
+│       → Run: npx playwright test                               │
+│       → Verify no regressions                                  │
+│                                                                 │
+│  ⛔ Cannot set passes:true without test_passes_after:true       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 **TDD Enforcement Checklist:**

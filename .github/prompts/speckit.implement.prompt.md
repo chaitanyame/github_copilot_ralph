@@ -41,11 +41,39 @@ Implement a specific task from the feature list using the @Coder agent pattern.
    - Run `init.sh` or `init.ps1` if needed
    - Check 1-2 existing passing features still work
 
-3. **Implement ONE Feature (TDD)**
+3. **Implement ONE Feature (TDD) - 🛑 MANDATORY GATES**
+
+   ### PRE-IMPLEMENTATION GATE (BLOCKING)
+   ```
+   ┌─────────────────────────────────────────────────────────────┐
+   │  ⛔ STOP: Complete these BEFORE writing implementation      │
+   ├─────────────────────────────────────────────────────────────┤
+   │  □ Create test: tests/{feature}.spec.ts                    │
+   │  □ Run test: npx playwright test tests/{feature}.spec.ts   │
+   │  □ Verify: Test FAILS (if passes, fix the test)            │
+   │  □ Update feature_list.json:                               │
+   │    - test_file: "tests/{feature}.spec.ts"                  │
+   │    - test_fails_before: true                               │
+   └─────────────────────────────────────────────────────────────┘
+   ```
+   
    - Find the specified task in `feature_list.json`
    - **RED**: Create failing Playwright test in `tests/{feature}.spec.ts`
    - **GREEN**: Implement the feature to make the test pass
    - **REFACTOR**: Clean up and verify end-to-end
+
+   ### POST-IMPLEMENTATION GATE (BLOCKING)
+   ```
+   ┌─────────────────────────────────────────────────────────────┐
+   │  ⛔ STOP: Complete these BEFORE marking passes:true         │
+   ├─────────────────────────────────────────────────────────────┤
+   │  □ Run test: npx playwright test tests/{feature}.spec.ts   │
+   │  □ Verify: Test PASSES                                      │
+   │  □ Update feature_list.json:                               │
+   │    - test_passes_after: true                               │
+   │    - passes: true                                          │
+   └─────────────────────────────────────────────────────────────┘
+   ```
 
 4. **Commit On Feature Branch**
    ```bash
