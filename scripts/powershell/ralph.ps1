@@ -58,50 +58,149 @@ function Write-Log {
     Write-Host "[$timestamp] $prefix $Message" -ForegroundColor $color
 }
 
+# Helper function for selective dependency installation
+function Install-SelectiveDeps {
+    param(
+        [bool]$MissingGh,
+        [bool]$MissingCopilot,
+        [bool]$MissingJq,
+        [bool]$MissingNode
+    )
+    
+    $InstallScript = Join-Path $ProjectRoot "scripts\install-dependencies.ps1"
+    
+    Write-Host ""
+    Write-Host "Select dependencies to install:" -ForegroundColor Cyan
+    Write-Host ""
+    
+    if ($MissingGh) {
+        $response = Read-Host "  Install GitHub CLI (gh)? [Y/n]"
+        if ($response -notmatch "^[nN]") {
+            Write-Log "Installing GitHub CLI..."
+            if (Get-Command winget -ErrorAction SilentlyContinue) {
+                winget install --id GitHub.cli --silent
+            } elseif (Get-Command choco -ErrorAction SilentlyContinue) {
+                choco install gh -y
+            } elseif (Get-Command scoop -ErrorAction SilentlyContinue) {
+                scoop install gh
+            } else {
+                Write-Log "No package manager found. Install manually: https://cli.github.com/" -Level Error
+            }
+        }
+    }
+    
+    if ($MissingCopilot) {
+        $response = Read-Host "  Install GitHub Copilot CLI extension? [Y/n]"
+        if ($response -notmatch "^[nN]") {
+            Write-Log "Installing GitHub Copilot CLI extension..."
+            if (Get-Command gh -ErrorAction SilentlyContinue) {
+                gh extension install github/gh-copilot
+            } else {
+                Write-Log "gh CLI required first" -Level Error
+            }
+        }
+    }
+    
+    if ($MissingJq) {
+        $response = Read-Host "  Install jq (JSON parser)? [Y/n]"
+        if ($response -notmatch "^[nN]") {
+            Write-Log "Installing jq..."
+            if (Get-Command winget -ErrorAction SilentlyContinue) {
+                winget install --id jqlang.jq --silent
+            } elseif (Get-Command choco -ErrorAction SilentlyContinue) {
+                choco install jq -y
+            } elseif (Get-Command scoop -ErrorAction SilentlyContinue) {
+                scoop install jq
+            } else {
+                Write-Log "No package manager found. Install manually: https://jqlang.github.io/jq/" -Level Error
+            }
+        }
+    }
+    
+    if ($MissingNode) {
+        $response = Read-Host "  Install Node.js (optional, for Playwright)? [y/N]"
+        if ($response -match "^[yY]") {
+            Write-Log "Installing Node.js..."
+            if (Get-Command winget -ErrorAction SilentlyContinue) {
+                winget install --id OpenJS.NodeJS.LTS --silent
+            } elseif (Get-Command choco -ErrorAction SilentlyContinue) {
+                choco install nodejs-lts -y
+            } elseif (Get-Command scoop -ErrorAction SilentlyContinue) {
+                scoop install nodejs-lts
+            } else {
+                Write-Log "No package manager found. Install manually: https://nodejs.org/" -Level Error
+            }
+        }
+    }
+}
+
 # ==============================================================================
 # Prerequisites Check
 # ==============================================================================
 function Test-Prerequisites {
     Write-Log "Checking prerequisites..."
     
-    $missingDeps = $false
     $InstallScript = Join-Path $ProjectRoot "scripts\install-dependencies.ps1"
+    $missingGh = $false
+    $missingCopilot = $false
+    $missingJq = $false
+    $missingNode = $false
+    
+    Write-Host ""
+    Write-Log "🔍 Checking required dependencies..."
+    Write-Host ""
     
     # Check for gh CLI
-    if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
-        Write-Log "GitHub CLI (gh) not found" -Level Warning
-        $missingDeps = $true
+    if (Get-Command gh -ErrorAction SilentlyContinue) {
+        Write-Log "GitHub CLI (gh) - installed ✓" -Level Success
+    } else {
+        Write-Host "[installer] ✗ GitHub CLI (gh) - NOT FOUND" -ForegroundColor Red
+        $missingGh = $true
     }
     
     # Check for gh copilot extension
     if (Get-Command gh -ErrorAction SilentlyContinue) {
         try {
             $null = gh copilot --version 2>&1
+            Write-Log "GitHub Copilot CLI - installed ✓" -Level Success
         } catch {
-            Write-Log "GitHub Copilot CLI extension not found" -Level Warning
-            $missingDeps = $true
+            Write-Host "[installer] ✗ GitHub Copilot CLI - NOT FOUND" -ForegroundColor Red
+            $missingCopilot = $true
         }
+    } else {
+        Write-Host "[installer] ✗ GitHub Copilot CLI - NOT FOUND (requires gh)" -ForegroundColor Red
+        $missingCopilot = $true
     }
     
-    # Check for jq (used for JSON parsing in some operations)
-    if (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
-        Write-Log "jq not found (optional but recommended)" -Level Warning
-        # Not critical for PowerShell as we use ConvertFrom-Json
+    # Check for jq
+    if (Get-Command jq -ErrorAction SilentlyContinue) {
+        Write-Log "jq (JSON parser) - installed ✓" -Level Success
+    } else {
+        Write-Host "[installer] ✗ jq (JSON parser) - NOT FOUND" -ForegroundColor Red
+        $missingJq = $true
     }
     
-    # If missing dependencies, offer to install
-    if ($missingDeps) {
+    # Check for Node.js (optional)
+    if (Get-Command node -ErrorAction SilentlyContinue) {
+        Write-Log "Node.js (optional) - installed ✓" -Level Success
+    } else {
+        Write-Log "Node.js (optional) - not found (needed for Playwright tests)" -Level Warning
+        $missingNode = $true
+    }
+    
+    Write-Host ""
+    
+    # If any required dependencies missing
+    if ($missingGh -or $missingCopilot -or $missingJq) {
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Yellow
+        Write-Host "⚠️  Some required dependencies are missing" -ForegroundColor Yellow
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Yellow
         Write-Host ""
-        Write-Log "Some dependencies are missing."
         
         if ($script:AutoInstall.IsPresent) {
-            Write-Log "Auto-installing dependencies..."
+            Write-Log "Auto-install mode enabled. Installing dependencies..."
             if (Test-Path $InstallScript) {
-                & $InstallScript -Auto
-                if ($LASTEXITCODE -ne 0) {
-                    Write-Log "Failed to install dependencies" -Level Error
-                    exit 1
-                }
+                & $InstallScript -Auto -SkipOptional
             } else {
                 Write-Log "Install script not found: $InstallScript" -Level Error
                 exit 1
@@ -112,44 +211,78 @@ function Test-Prerequisites {
             exit 1
         } else {
             # Interactive prompt
+            Write-Host "Would you like to install the missing dependencies?" -ForegroundColor Yellow
             Write-Host ""
-            $response = Read-Host "Would you like to install missing dependencies? [Y/n]"
+            Write-Host "  [Y] Yes, install all missing dependencies"
+            Write-Host "  [n] No, exit and install manually"
+            Write-Host "  [s] Select which ones to install"
+            Write-Host ""
+            $response = Read-Host "Your choice [Y/n/s]"
             
-            if ($response -match "^[nN]") {
-                Write-Log "Cannot proceed without required dependencies" -Level Error
-                exit 1
-            }
-            
-            if (Test-Path $InstallScript) {
-                & $InstallScript
-                if ($LASTEXITCODE -ne 0) {
-                    Write-Log "Failed to install some dependencies" -Level Error
+            switch -Regex ($response) {
+                "^[nN]$" {
+                    Write-Log "Cannot proceed without required dependencies" -Level Error
+                    Write-Host ""
+                    Write-Host "Install manually:" -ForegroundColor Cyan
+                    if ($missingGh) { Write-Host "  • gh CLI: https://cli.github.com/" }
+                    if ($missingCopilot) { Write-Host "  • gh copilot: gh extension install github/gh-copilot" }
+                    if ($missingJq) { Write-Host "  • jq: https://jqlang.github.io/jq/" }
                     exit 1
                 }
-            } else {
-                Write-Log "Install script not found: $InstallScript" -Level Error
-                exit 1
+                "^[sS]$" {
+                    # Selective installation
+                    Install-SelectiveDeps -MissingGh $missingGh -MissingCopilot $missingCopilot -MissingJq $missingJq -MissingNode $missingNode
+                }
+                default {
+                    # Install all
+                    if (Test-Path $InstallScript) {
+                        & $InstallScript -Auto -SkipOptional
+                    } else {
+                        Write-Log "Install script not found: $InstallScript" -Level Error
+                        exit 1
+                    }
+                }
             }
         }
-        
-        # Re-verify after installation
-        Write-Log "Verifying dependencies after installation..."
         
         # Refresh PATH
         $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
         
+        # Re-verify after installation
+        Write-Host ""
+        Write-Log "Verifying dependencies after installation..."
+        $verifyFailed = $false
+        
         if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
             Write-Log "GitHub CLI (gh) still not available" -Level Error
+            $verifyFailed = $true
+        }
+        
+        if (Get-Command gh -ErrorAction SilentlyContinue) {
+            try {
+                $null = gh copilot --version 2>&1
+            } catch {
+                Write-Log "GitHub Copilot CLI extension still not available" -Level Error
+                $verifyFailed = $true
+            }
+        }
+        
+        if (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
+            Write-Log "jq still not available" -Level Error
+            $verifyFailed = $true
+        }
+        
+        if ($verifyFailed) {
+            Write-Log "Some dependencies failed to install. Please install manually." -Level Error
             exit 1
         }
         
-        try {
-            $null = gh copilot --version 2>&1
-        } catch {
-            Write-Log "GitHub Copilot CLI extension still not available" -Level Error
-            exit 1
-        }
+        Write-Log "All required dependencies verified!" -Level Success
+    } else {
+        Write-Log "All required dependencies are installed!" -Level Success
     }
+    
+    Write-Host ""
     
     # Check for feature list
     if (-not (Test-Path $FeatureListPath)) {

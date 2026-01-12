@@ -50,92 +50,220 @@ log_warning() {
 }
 
 # ==============================================================================
+# Dependency Installation Helpers
+# ==============================================================================
+install_missing_deps() {
+    local missing_gh=$1
+    local missing_copilot=$2
+    local missing_jq=$3
+    local missing_node=$4
+    local auto=$5
+    
+    local INSTALL_SCRIPT="$PROJECT_ROOT/scripts/install-dependencies.sh"
+    
+    if [[ -f "$INSTALL_SCRIPT" ]]; then
+        source "$INSTALL_SCRIPT"
+        
+        local pkg_manager=$(detect_package_manager)
+        log "Detected package manager: $pkg_manager"
+        echo ""
+        
+        if [[ $missing_gh -eq 1 ]]; then
+            install_gh "$pkg_manager" "$auto"
+        fi
+        
+        if [[ $missing_copilot -eq 1 ]]; then
+            install_gh_copilot "$auto"
+        fi
+        
+        if [[ $missing_jq -eq 1 ]]; then
+            install_jq "$pkg_manager" "$auto"
+        fi
+        
+        if [[ $missing_node -eq 1 ]] && [[ "$auto" != "true" ]]; then
+            echo ""
+            read -p "$(echo -e "${YELLOW}Install Node.js (optional, for Playwright tests)? [y/N]:${NC} ")" node_response
+            if [[ "$node_response" =~ ^[yY] ]]; then
+                install_node "$pkg_manager" "true"
+            fi
+        fi
+    else
+        log_error "Install script not found: $INSTALL_SCRIPT"
+        exit 1
+    fi
+}
+
+install_selective() {
+    local missing_gh=$1
+    local missing_copilot=$2
+    local missing_jq=$3
+    local missing_node=$4
+    
+    local INSTALL_SCRIPT="$PROJECT_ROOT/scripts/install-dependencies.sh"
+    
+    if [[ -f "$INSTALL_SCRIPT" ]]; then
+        source "$INSTALL_SCRIPT"
+        
+        local pkg_manager=$(detect_package_manager)
+        log "Detected package manager: $pkg_manager"
+        echo ""
+        
+        if [[ $missing_gh -eq 1 ]]; then
+            read -p "$(echo -e "${YELLOW}Install GitHub CLI (gh)? [Y/n]:${NC} ")" response
+            if [[ ! "$response" =~ ^[nN] ]]; then
+                install_gh "$pkg_manager" "true"
+            fi
+        fi
+        
+        if [[ $missing_copilot -eq 1 ]]; then
+            read -p "$(echo -e "${YELLOW}Install GitHub Copilot CLI extension? [Y/n]:${NC} ")" response
+            if [[ ! "$response" =~ ^[nN] ]]; then
+                install_gh_copilot "true"
+            fi
+        fi
+        
+        if [[ $missing_jq -eq 1 ]]; then
+            read -p "$(echo -e "${YELLOW}Install jq (JSON parser)? [Y/n]:${NC} ")" response
+            if [[ ! "$response" =~ ^[nN] ]]; then
+                install_jq "$pkg_manager" "true"
+            fi
+        fi
+        
+        if [[ $missing_node -eq 1 ]]; then
+            read -p "$(echo -e "${YELLOW}Install Node.js (optional, for Playwright tests)? [y/N]:${NC} ")" response
+            if [[ "$response" =~ ^[yY] ]]; then
+                install_node "$pkg_manager" "true"
+            fi
+        fi
+    else
+        log_error "Install script not found: $INSTALL_SCRIPT"
+        exit 1
+    fi
+}
+
+# ==============================================================================
 # Prerequisites Check
 # ==============================================================================
 check_prerequisites() {
     log "Checking prerequisites..."
     
-    local missing_deps=0
     local INSTALL_SCRIPT="$PROJECT_ROOT/scripts/install-dependencies.sh"
+    local missing_gh=0
+    local missing_copilot=0
+    local missing_jq=0
+    local missing_node=0
+    
+    echo ""
+    log "🔍 Checking required dependencies..."
+    echo ""
     
     # Check for gh CLI
-    if ! command -v gh &> /dev/null; then
-        log_warning "GitHub CLI (gh) not found"
-        missing_deps=1
+    if command -v gh &> /dev/null; then
+        log_success "GitHub CLI (gh) - installed ✓"
+    else
+        log_error "GitHub CLI (gh) - NOT FOUND ✗"
+        missing_gh=1
     fi
     
     # Check for gh copilot extension
-    if command -v gh &> /dev/null && ! gh copilot --version &> /dev/null 2>&1; then
-        log_warning "GitHub Copilot CLI extension not found"
-        missing_deps=1
+    if command -v gh &> /dev/null && gh copilot --version &> /dev/null 2>&1; then
+        log_success "GitHub Copilot CLI - installed ✓"
+    else
+        log_error "GitHub Copilot CLI - NOT FOUND ✗"
+        missing_copilot=1
     fi
     
     # Check for jq
-    if ! command -v jq &> /dev/null; then
-        log_warning "jq not found"
-        missing_deps=1
+    if command -v jq &> /dev/null; then
+        log_success "jq (JSON parser) - installed ✓"
+    else
+        log_error "jq (JSON parser) - NOT FOUND ✗"
+        missing_jq=1
     fi
     
-    # If missing dependencies, offer to install
-    if [[ $missing_deps -eq 1 ]]; then
-        log ""
-        log "Some dependencies are missing."
+    # Check for Node.js (optional)
+    if command -v node &> /dev/null; then
+        log_success "Node.js (optional) - installed ✓"
+    else
+        log_warning "Node.js (optional) - not found (needed for Playwright tests)"
+        missing_node=1
+    fi
+    
+    echo ""
+    
+    # If any required dependencies missing
+    if [[ $missing_gh -eq 1 ]] || [[ $missing_copilot -eq 1 ]] || [[ $missing_jq -eq 1 ]]; then
+        log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        log "⚠️  Some required dependencies are missing"
+        log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
         
         if [[ "$AUTO_INSTALL" == "true" ]]; then
-            log "Auto-installing dependencies..."
-            if [[ -f "$INSTALL_SCRIPT" ]]; then
-                source "$INSTALL_SCRIPT"
-                if ! check_and_install_all "true" "true"; then
-                    log_error "Failed to install dependencies"
-                    exit 1
-                fi
-            else
-                log_error "Install script not found: $INSTALL_SCRIPT"
-                exit 1
-            fi
+            log "Auto-install mode enabled. Installing dependencies..."
+            install_missing_deps "$missing_gh" "$missing_copilot" "$missing_jq" "$missing_node" "true"
         elif [[ "$SKIP_INSTALL" == "true" ]]; then
             log_error "Missing dependencies and --skip-install specified"
             log_error "Install manually or run without --skip-install"
             exit 1
         else
-            # Interactive prompt
+            # Interactive prompt for each dependency
+            echo -e "${YELLOW}Would you like to install the missing dependencies?${NC}"
             echo ""
-            read -p "$(echo -e "${YELLOW}Would you like to install missing dependencies? [Y/n]:${NC} ")" response
+            echo "  [Y] Yes, install all missing dependencies"
+            echo "  [n] No, exit and install manually"
+            echo "  [s] Select which ones to install"
+            echo ""
+            read -p "$(echo -e "${BLUE}Your choice [Y/n/s]:${NC} ")" response
+            
             case "$response" in
-                [nN][oO]|[nN])
+                [nN])
                     log_error "Cannot proceed without required dependencies"
+                    log "Install manually:"
+                    [[ $missing_gh -eq 1 ]] && log "  • gh CLI: https://cli.github.com/"
+                    [[ $missing_copilot -eq 1 ]] && log "  • gh copilot: gh extension install github/gh-copilot"
+                    [[ $missing_jq -eq 1 ]] && log "  • jq: https://jqlang.github.io/jq/"
                     exit 1
                     ;;
+                [sS])
+                    # Selective installation
+                    install_selective "$missing_gh" "$missing_copilot" "$missing_jq" "$missing_node"
+                    ;;
                 *)
-                    if [[ -f "$INSTALL_SCRIPT" ]]; then
-                        source "$INSTALL_SCRIPT"
-                        if ! check_and_install_all "false" "true"; then
-                            log_error "Failed to install some dependencies"
-                            exit 1
-                        fi
-                    else
-                        log_error "Install script not found: $INSTALL_SCRIPT"
-                        exit 1
-                    fi
+                    # Install all
+                    install_missing_deps "$missing_gh" "$missing_copilot" "$missing_jq" "$missing_node" "false"
                     ;;
             esac
         fi
         
         # Re-verify after installation
+        echo ""
         log "Verifying dependencies after installation..."
+        local verify_failed=0
+        
         if ! command -v gh &> /dev/null; then
             log_error "GitHub CLI (gh) still not available"
-            exit 1
+            verify_failed=1
         fi
-        if ! gh copilot --version &> /dev/null 2>&1; then
+        if command -v gh &> /dev/null && ! gh copilot --version &> /dev/null 2>&1; then
             log_error "GitHub Copilot CLI extension still not available"
-            exit 1
+            verify_failed=1
         fi
         if ! command -v jq &> /dev/null; then
             log_error "jq still not available"
+            verify_failed=1
+        fi
+        
+        if [[ $verify_failed -eq 1 ]]; then
+            log_error "Some dependencies failed to install. Please install manually."
             exit 1
         fi
+        
+        log_success "All required dependencies verified!"
+    else
+        log_success "All required dependencies are installed!"
     fi
+    
+    echo ""
     
     # Check for feature list
     if [[ ! -f "$FEATURE_LIST" ]]; then
