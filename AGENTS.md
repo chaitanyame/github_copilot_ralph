@@ -271,11 +271,56 @@ If the environment is broken:
 4. **Document everything** - Next agent has zero memory
 5. **Quality over speed** - Production-ready is the goal
 
+## Agent Skills
+
+Agent Skills are portable, auto-activated capabilities that work across VS Code, CLI, and coding agents. Skills load on-demand based on description matching.
+
+### Available Skills
+
+| Skill | Triggers On | Purpose |
+|-------|-------------|---------|
+| `tdd-workflow` | TDD, testing, red-green-refactor | Enforces TDD Gate 1/2 compliance |
+| `ralph-autonomous` | Ralph, autonomous, unattended | 10-step autonomous process |
+| `spec-kit-planning` | spec, specification, planning | SDD workflow patterns |
+| `frontend-design` | build, dashboard, React, HTML/CSS | Production-grade UI design |
+| `webapp-testing` | testing, Playwright, verify UI | Browser automation testing |
+| `skill-creator` | create skill, new skill | Create new custom skills |
+| `tech-stack-detection` | stack, dependencies, framework | Auto-detect project tech |
+
+### How Skills Auto-Activate
+
+1. **Level 1**: Copilot reads skill `name` + `description` (~100 tokens each)
+2. **Level 2**: When prompt matches description, full SKILL.md loads
+3. **Level 3**: Scripts/references load only when explicitly referenced
+
+### Creating Custom Skills
+
+```bash
+# Initialize new skill during Spec Kit planning
+python .github/skills/skill-creator/scripts/init_skill.py my-skill --path .github/skills
+```
+
+### Skill Directory Structure
+
+```
+.github/skills/
+├── tdd-workflow/
+│   ├── SKILL.md
+│   └── scripts/
+├── ralph-autonomous/
+│   ├── SKILL.md
+│   └── scripts/
+├── frontend-design/
+│   └── SKILL.md
+└── ...
+```
+
 ## File Conventions
 
 - Agent definitions: `.github/agents/*.agent.md`
 - Prompt commands: `.github/prompts/*.prompt.md`
 - Instructions: `.github/instructions/*.instructions.md`
+- **Agent Skills: `.github/skills/*/SKILL.md`**
 - Feature tracking: `memory/feature_list.json`
 - Issue tracking: `memory/issues.json`
 - Progress notes: `memory/claude-progress.md`
