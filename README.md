@@ -1,6 +1,19 @@
 # Agent Harness Framework
 
-A template repository for building **long-lived autonomous agents** within VS Code GitHub Copilot, based on [Anthropic's "Effective Harnesses for Long-Running Agents"](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents).
+A production-ready template for building **long-lived autonomous agents** within VS Code GitHub Copilot, combining [Anthropic's "Effective Harnesses for Long-Running Agents"](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) with [GitHub Spec Kit](https://github.com/github/spec-kit) and [Agent Skills](https://agentskills.io/).
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Enabled-blue.svg)](https://agentskills.io/)
+
+## ✨ Key Features
+
+- **🔄 Session Continuity** - File-based artifacts bridge context between agent sessions
+- **📋 Spec-Driven Development** - Planning → Specification → Implementation workflow
+- **🤖 Autonomous Mode (Ralph)** - Unattended batch implementation with security validation
+- **🧪 TDD Enforcement** - Mandatory test-first gates before implementation
+- **🎯 Agent Skills** - Auto-activating capabilities based on context
+- **🔒 Security Profiles** - 3-layer command validation for autonomous execution
+- **📊 Progress Tracking** - Real-time feature completion dashboard
 
 ## The Problem
 
@@ -18,8 +31,9 @@ This framework provides file-based artifacts that bridge context between session
 |----------|---------|
 | `memory/feature_list.json` | Source of truth - all features with pass/fail tracking |
 | `memory/claude-progress.md` | Session notes - what happened, what's next |
-| `init.sh` / `init.ps1` | Environment setup script |
-| Git history | Incremental progress with rollback capability |
+| `memory/issues.json` | Adhoc bugs, hotfixes, and requests |
+| `.github/skills/` | Auto-activating agent capabilities |
+| Git branches | Isolated work per specification (created by Spec Kit) |
 
 ## Quick Start
 
@@ -38,17 +52,18 @@ Use Spec Kit workflow to create specifications and generate feature list:
 
 ```
 /speckit.specify "Your feature description"
-/speckit.plan
+/speckit.plan      # Auto-detects tech stack + creates skills
 /speckit.tasks
 /harness.generate
 ```
 
 This creates:
 - Specification in `specs/{branch}/spec.md`
-- Implementation plan in `specs/{branch}/plan.md`
+- Implementation plan in `specs/{branch}/plan.md` (includes tech stack)
 - Task breakdown in `specs/{branch}/tasks.md`
 - Feature tracking in `memory/feature_list.json`
 - **Spec Kit branch** (e.g., `003-your-feature-name`)
+- **Stack-specific skills** if needed
 
 ### 3. Implementation Phase (Choose Your Mode)
 
@@ -94,7 +109,7 @@ git push origin {branch-name}
 │              SPEC KIT (Planning Phase)                       │
 ├──────────────────────────────────────────────────────────────┤
 │  /speckit.specify  → Creates spec + auto-creates branch      │
-│  /speckit.plan     → Creates implementation plan             │
+│  /speckit.plan     → Detects tech stack + creates plan       │
 │  /speckit.tasks    → Generates task breakdown                │
 │  /harness.generate → Converts to feature_list.json           │
 └──────────────────────────────────────────────────────────────┘
@@ -115,6 +130,40 @@ git push origin {branch-name}
 └──────────────────────────────────────────────────────────────┘
 ```
 
+## Agent Skills
+
+Agent Skills are **portable, auto-activating capabilities** that work across VS Code, CLI, and coding agents. Skills load on-demand based on description matching.
+
+### Available Skills
+
+| Skill | Triggers On | Purpose |
+|-------|-------------|---------|
+| `tdd-workflow` | TDD, testing, red-green-refactor | Enforces TDD Gate 1/2 compliance |
+| `ralph-autonomous` | Ralph, autonomous, unattended | 10-step autonomous process |
+| `spec-kit-planning` | spec, specification, planning | SDD workflow patterns |
+| `frontend-design` | dashboard, React, HTML/CSS | Production-grade UI design |
+| `webapp-testing` | testing, Playwright, verify UI | Browser automation testing |
+| `skill-creator` | create skill, new skill | Create new custom skills |
+| `tech-stack-detection` | stack, dependencies, framework | Auto-detect project tech |
+
+### How Skills Auto-Activate
+
+1. **Level 1**: Copilot reads skill `name` + `description` (~100 tokens each)
+2. **Level 2**: When prompt matches description, full SKILL.md loads
+3. **Level 3**: Scripts/references load only when explicitly referenced
+
+Skills follow the [agentskills.io](https://agentskills.io/) open standard.
+
+### Creating Custom Skills
+
+```bash
+# During /speckit.plan, create stack-specific skills
+python .github/skills/skill-creator/scripts/init_skill.py my-skill --path .github/skills
+
+# Or PowerShell
+.\\.github\\skills\\skill-creator\\scripts\\init_skill.ps1 -Name my-skill -Path .github/skills
+```
+
 ## Complete Example Workflow
 
 **End-to-end: From idea to merged PR**
@@ -122,11 +171,12 @@ git push origin {branch-name}
 ```bash
 # 1. PLANNING PHASE (Spec Kit in VS Code)
 /speckit.specify "Real-time chat with WebSocket support"
-/speckit.plan
+/speckit.plan      # Auto-detects: Node.js, TypeScript, React, Socket.io
 /speckit.tasks
 /harness.generate
 
 # Result: Branch 003-real-time-chat created with feature_list.json
+# + Any stack-specific skills created (e.g., socketio-patterns)
 
 # 2. IMPLEMENTATION PHASE (Choose one)
 
@@ -143,6 +193,40 @@ git push origin 003-real-time-chat
 ```
 
 **Result:** Feature fully implemented, tested, and merged without manual coding.
+
+## TDD Enforcement
+
+All feature implementation follows **mandatory Test-Driven Development**:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  GATE 1: PRE-IMPLEMENTATION (Before writing ANY code)       │
+├──────────────────────────────────────────────────────────────┤
+│  □ Create test: tests/{feature}.spec.ts                     │
+│  □ Run: npx playwright test tests/{feature}.spec.ts         │
+│  □ Verify: Test FAILS                                       │
+│  □ Update feature_list.json: test_fails_before: true        │
+│  ⛔ CANNOT write implementation code until gate passes       │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│  GATE 2: POST-IMPLEMENTATION (Before marking passes:true)   │
+├──────────────────────────────────────────────────────────────┤
+│  □ Run: npx playwright test tests/{feature}.spec.ts         │
+│  □ Verify: Test PASSES                                      │
+│  □ Update feature_list.json: test_passes_after: true        │
+│  ⛔ CANNOT set passes:true without test_passes_after:true   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Validate TDD gates:**
+```bash
+# Bash
+./scripts/bash/verify-tdd-gates.sh
+
+# PowerShell
+.\\.github\\skills\\tdd-workflow\\scripts\\verify-tdd-gates.ps1
+```
 
 ## Two Implementation Modes
 
@@ -222,12 +306,20 @@ See [Autonomous Mode Guide](#autonomous-mode-guide) for details.
 │   │   ├── researcher.agent.md
 │   │   ├── reviewer.agent.md
 │   │   └── orchestrator.agent.md
+│   ├── skills/           # Auto-activating agent skills
+│   │   ├── frontend-design/
+│   │   ├── webapp-testing/
+│   │   ├── skill-creator/
+│   │   ├── tdd-workflow/
+│   │   ├── ralph-autonomous/
+│   │   ├── spec-kit-planning/
+│   │   └── tech-stack-detection/
 │   ├── prompts/          # Reusable prompt commands
 │   ├── instructions/     # Context-specific instructions
 │   └── copilot-instructions.md
 ├── .vscode/
 │   ├── mcp.json          # MCP server configuration
-│   └── settings.json     # VS Code settings
+│   └── settings.json     # VS Code settings (includes chat.useAgentSkills)
 ├── memory/
 │   ├── constitution.md   # Project principles
 │   ├── feature_list.json # Source of truth
@@ -236,7 +328,24 @@ See [Autonomous Mode Guide](#autonomous-mode-guide) for details.
 │   ├── state/            # Agent checkpoints
 │   ├── context/          # Persisted knowledge
 │   └── sessions/         # Session logs
+├── scripts/
+│   ├── bash/             # Unix scripts
+│   │   ├── ralph.sh      # Autonomous loop runner
+│   │   ├── check-prerequisites.sh
+│   │   ├── new-session.sh
+│   │   └── setup-project.sh
+│   ├── powershell/       # Windows scripts
+│   │   ├── ralph.ps1     # Autonomous loop runner
+│   │   ├── check-prerequisites.ps1
+│   │   ├── new-session.ps1
+│   │   └── setup-project.ps1
+│   ├── security.sh       # Command validation (Bash)
+│   ├── security.ps1      # Command validation (PowerShell)
+│   ├── install-dependencies.sh
+│   └── install-dependencies.ps1
 ├── templates/            # Templates for new agents/prompts
+├── tests/
+│   └── issues/           # Issue regression tests
 ├── AGENTS.md             # Cross-agent instructions
 ├── init.sh               # Setup script (Unix)
 ├── init.ps1              # Setup script (Windows)
@@ -321,7 +430,6 @@ Use this for simpler projects:
 | `/speckit.specify` | Create detailed feature specification |
 | `/speckit.plan` | Create implementation plan from specs |
 | `/speckit.tasks` | Generate actionable task list |
-| `/speckit.implement` | Implement a specific task |
 
 ### Harness Commands
 
@@ -334,6 +442,26 @@ Use this for simpler projects:
 | `/harness.resume` | Resume from checkpoint |
 | `/harness.issue` | Add adhoc bug, hotfix, or request |
 | `/harness.issues` | View issue tracking dashboard |
+
+## Issue Tracking
+
+Issues are for adhoc work discovered outside the normal Spec Kit workflow:
+
+```
+/harness.issue "Description of bug or request"
+/harness.issues   # View all issues
+```
+
+### Issue Categories
+
+| Category | TDD Required? | Description |
+|----------|---------------|-------------|
+| `bug` | ✅ Yes | Regression test mandatory |
+| `hotfix` | Optional | Urgent fix |
+| `enhancement` | Recommended | Improvement |
+| `adhoc` | No | One-off task |
+
+Bug fixes require regression tests in `tests/issues/I{id}-{description}.spec.ts`
 
 ## Autonomous Mode Guide
 
@@ -455,6 +583,28 @@ Ralph exits with success when:
 2. ✅ All TDD gates pass (`test_fails_before` and `test_passes_after`)
 3. ✅ Git working tree is clean (no uncommitted changes)
 
+### Auto-Install Dependencies
+
+Ralph includes **automatic dependency installation** with interactive prompts:
+
+```bash
+# When dependencies are missing:
+Missing dependencies detected: npm, node
+
+Options:
+  Y - Install all missing dependencies (default)
+  n - Skip and exit
+  s - Select which to install
+
+Your choice [Y/n/s]:
+```
+
+Supported package managers:
+- **npm/node** - via nvm or system install
+- **Playwright** - via npx playwright install
+- **GitHub CLI** - via brew/apt/choco
+- **gh-copilot** - via gh extension install
+
 ### Troubleshooting
 
 **Issue:** Rate limited
@@ -504,11 +654,57 @@ description: What this prompt does
 Prompt content...
 ```
 
+### Adding New Skills
+
+Create a skill during `/speckit.plan` or manually:
+
+```bash
+# Python
+python .github/skills/skill-creator/scripts/init_skill.py my-skill --path .github/skills
+
+# PowerShell
+.\\.github\\skills\\skill-creator\\scripts\\init_skill.ps1 -Name my-skill -Path .github/skills
+```
+
+Skill structure:
+```
+.github/skills/my-skill/
+├── SKILL.md           # Required: skill definition
+├── scripts/           # Optional: automation scripts
+├── references/        # Optional: documentation
+└── assets/            # Optional: images, data
+```
+
+## VS Code Settings
+
+Required settings in `.vscode/settings.json`:
+
+```json
+{
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "chat.promptFiles": true,
+  "chat.useAgentsMdFile": true,
+  "chat.useNestedAgentsMdFiles": true,
+  "chat.useAgentSkills": true,
+  "github.copilot.chat.agent.runTasks": true
+}
+```
+
+## Prerequisites
+
+- **VS Code** with GitHub Copilot extension
+- **GitHub CLI** (`gh`) for autonomous mode
+- **gh-copilot extension** for Ralph: `gh extension install github/gh-copilot`
+- **Node.js** (v18+) for Playwright testing
+- **Git** for version control
+
 ## Based On
 
 This framework implements patterns from:
 - [Anthropic: Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
-- [Anthropic Quickstart: Autonomous Coding](https://github.com/anthropics/claude-quickstarts/tree/main/autonomous-coding)
+- [Anthropic Skills Repository](https://github.com/anthropics/skills)
+- [GitHub Spec Kit](https://github.com/github/spec-kit)
+- [Agent Skills Open Standard](https://agentskills.io/)
 
 ## Contributing
 
