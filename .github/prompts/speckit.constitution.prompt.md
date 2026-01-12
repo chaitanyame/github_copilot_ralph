@@ -1,34 +1,34 @@
 # /speckit.constitution - Create Project Constitution
 
-Create or update a project constitution that defines the core principles and standards for this project.
+Create or update a project constitution that defines the core **principles, values, and quality standards** for this project.
+
+## IMPORTANT: Scope Boundaries
+
+✅ **Constitution defines:**
+- Project vision and goals
+- Design philosophy and aesthetic values
+- Quality standards and acceptance criteria
+- Development principles (TDD, accessibility, performance)
+- Documentation requirements
+
+❌ **Constitution does NOT decide:**
+- Specific technologies (React, Vue, Python, etc.)
+- Libraries or frameworks
+- File structure or architecture
+- These are decided during `/speckit.plan` after analyzing requirements
 
 ## Instructions
 
-1. Analyze the current workspace to understand the project type and context
+1. Ask the user about their project vision and design philosophy
 2. Create a `memory/constitution.md` file with:
    - **Project Vision**: What this project aims to achieve
+   - **Design Philosophy**: Aesthetic values, inspiration, style guidelines
    - **Core Principles**: Guiding values for all decisions
-   - **Technical Standards**: Languages, frameworks, coding standards
-   - **Libraries**: Preferred libraries (or use framework defaults)
-   - **Quality Gates**: What must pass before work is considered done
-   - **File Conventions**: Naming, structure, organization rules
-   - **Testing Strategy**: How code should be tested
-   - **Documentation Requirements**: What must be documented
+   - **Quality Standards**: Performance, accessibility, testing requirements
+   - **Development Principles**: TDD mandatory, code review, documentation
+   - **Acceptance Criteria**: What must pass before work is considered done
 
 3. If a constitution already exists, review and update it based on any new context
-
-## Library Configuration
-
-Ask the user if they have specific library preferences. If not specified, framework defaults apply:
-
-| Category | TypeScript Default | Python Default |
-|----------|-------------------|----------------|
-| UI Testing | Playwright | Playwright |
-| HTTP Client | fetch (native) | requests |
-| API Framework | Express | FastAPI |
-| Validation | Zod | Pydantic |
-
-See `.github/instructions/libraries.instructions.md` for complete defaults.
 
 ## Output Format
 
@@ -38,44 +38,41 @@ See `.github/instructions/libraries.instructions.md` for complete defaults.
 ## Vision
 {Clear statement of project goals}
 
+## Design Philosophy
+{Aesthetic values, inspiration sources, style guidelines}
+{e.g., "Minimalist Apple aesthetic", "Bold and colorful", "Corporate professional"}
+
 ## Core Principles
-1. {Principle 1}
-2. {Principle 2}
+1. {Principle 1 - e.g., "TDD mandatory"}
+2. {Principle 2 - e.g., "Mobile-first responsive design"}
+3. {Principle 3 - e.g., "Performance is non-negotiable"}
 ...
 
-## Technical Standards
-- **Language**: {primary language}
-- **Framework**: {frameworks used}
-- **Style Guide**: {coding standards}
+## Quality Standards
+- Lighthouse Performance > {target}
+- Lighthouse Accessibility > {target}
+- WCAG {level} compliant
+- {other measurable standards}
 
-## Libraries
+## Development Principles
+- Test-Driven Development (write test first, then implement)
+- {other development practices}
 
-### Specified Libraries
-| Category | Library | Reason |
-|----------|---------|--------|
-| UI Testing | {Playwright or user choice} | {reason if overriding default} |
-| HTTP Client | {default or user choice} | {reason if overriding default} |
-| {other categories} | | |
-
-### Use Framework Defaults For
-- {list categories using defaults}
-
-## Quality Gates
+## Acceptance Criteria
 - [ ] All tests pass
-- [ ] No linting errors
-- [ ] Documentation updated
-- [ ] Code reviewed
-
-## File Conventions
-- {convention 1}
-- {convention 2}
-
-## Testing Strategy
-{How and what to test}
-
-## Documentation Requirements
-{What must be documented}
+- [ ] Meets performance targets
+- [ ] Accessibility validated
+- [ ] Documentation complete
 ```
+
+## Next Steps
+
+After constitution is created, guide the user:
+
+> Constitution created! Your project principles are now defined.
+>
+> Next: Use `/speckit.specify "feature description"` to create your first feature specification.
+> The tech stack will be determined during `/speckit.plan` based on your requirements.
 
 ## Important
 
