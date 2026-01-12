@@ -55,23 +55,86 @@ log_warning() {
 check_prerequisites() {
     log "Checking prerequisites..."
     
+    local missing_deps=0
+    local INSTALL_SCRIPT="$PROJECT_ROOT/scripts/install-dependencies.sh"
+    
     # Check for gh CLI
     if ! command -v gh &> /dev/null; then
-        log_error "GitHub CLI (gh) not found. Install from https://cli.github.com/"
-        exit 1
+        log_warning "GitHub CLI (gh) not found"
+        missing_deps=1
     fi
     
     # Check for gh copilot extension
-    if ! gh copilot --version &> /dev/null; then
-        log_error "GitHub Copilot CLI extension not found."
-        log_error "Install with: gh extension install github/gh-copilot"
-        exit 1
+    if command -v gh &> /dev/null && ! gh copilot --version &> /dev/null 2>&1; then
+        log_warning "GitHub Copilot CLI extension not found"
+        missing_deps=1
     fi
     
     # Check for jq
     if ! command -v jq &> /dev/null; then
-        log_error "jq not found. Install from https://jqlang.github.io/jq/"
-        exit 1
+        log_warning "jq not found"
+        missing_deps=1
+    fi
+    
+    # If missing dependencies, offer to install
+    if [[ $missing_deps -eq 1 ]]; then
+        log ""
+        log "Some dependencies are missing."
+        
+        if [[ "$AUTO_INSTALL" == "true" ]]; then
+            log "Auto-installing dependencies..."
+            if [[ -f "$INSTALL_SCRIPT" ]]; then
+                source "$INSTALL_SCRIPT"
+                if ! check_and_install_all "true" "true"; then
+                    log_error "Failed to install dependencies"
+                    exit 1
+                fi
+            else
+                log_error "Install script not found: $INSTALL_SCRIPT"
+                exit 1
+            fi
+        elif [[ "$SKIP_INSTALL" == "true" ]]; then
+            log_error "Missing dependencies and --skip-install specified"
+            log_error "Install manually or run without --skip-install"
+            exit 1
+        else
+            # Interactive prompt
+            echo ""
+            read -p "$(echo -e "${YELLOW}Would you like to install missing dependencies? [Y/n]:${NC} ")" response
+            case "$response" in
+                [nN][oO]|[nN])
+                    log_error "Cannot proceed without required dependencies"
+                    exit 1
+                    ;;
+                *)
+                    if [[ -f "$INSTALL_SCRIPT" ]]; then
+                        source "$INSTALL_SCRIPT"
+                        if ! check_and_install_all "false" "true"; then
+                            log_error "Failed to install some dependencies"
+                            exit 1
+                        fi
+                    else
+                        log_error "Install script not found: $INSTALL_SCRIPT"
+                        exit 1
+                    fi
+                    ;;
+            esac
+        fi
+        
+        # Re-verify after installation
+        log "Verifying dependencies after installation..."
+        if ! command -v gh &> /dev/null; then
+            log_error "GitHub CLI (gh) still not available"
+            exit 1
+        fi
+        if ! gh copilot --version &> /dev/null 2>&1; then
+            log_error "GitHub Copilot CLI extension still not available"
+            exit 1
+        fi
+        if ! command -v jq &> /dev/null; then
+            log_error "jq still not available"
+            exit 1
+        fi
     fi
     
     # Check for feature list
@@ -360,6 +423,8 @@ OPTIONS:
     --once                Run single iteration (for testing)
     --resume              Resume from saved state
     --reset               Reset state and start fresh
+    --auto-install        Auto-install missing dependencies without prompting
+    --skip-install        Fail if dependencies missing (never prompt)
     -h, --help            Show this help message
 
 EXAMPLES:
@@ -368,6 +433,7 @@ EXAMPLES:
     ./ralph.sh --profile locked             # Restricted permissions
     ./ralph.sh --once                       # Single iteration
     ./ralph.sh --resume                     # Resume interrupted session
+    ./ralph.sh --auto-install               # Auto-install deps and run
 
 EOF
 }
@@ -375,6 +441,8 @@ EOF
 # Parse arguments
 RUN_ONCE=0
 RESET_STATE=0
+AUTO_INSTALL=false
+SKIP_INSTALL=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -396,6 +464,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         --reset)
             RESET_STATE=1
+            shift
+            ;;
+        --auto-install)
+            AUTO_INSTALL=true
+            shift
+            ;;
+        --skip-install)
+            SKIP_INSTALL=true
             shift
             ;;
         -h|--help)

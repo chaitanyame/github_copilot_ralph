@@ -9,6 +9,8 @@ param(
     [switch]$Once,
     [switch]$Resume,
     [switch]$Reset,
+    [switch]$AutoInstall,
+    [switch]$SkipInstall,
     [switch]$Help
 )
 
@@ -62,19 +64,91 @@ function Write-Log {
 function Test-Prerequisites {
     Write-Log "Checking prerequisites..."
     
+    $missingDeps = $false
+    $InstallScript = Join-Path $ProjectRoot "scripts\install-dependencies.ps1"
+    
     # Check for gh CLI
     if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
-        Write-Log "GitHub CLI (gh) not found. Install from https://cli.github.com/" -Level Error
-        exit 1
+        Write-Log "GitHub CLI (gh) not found" -Level Warning
+        $missingDeps = $true
     }
     
     # Check for gh copilot extension
-    try {
-        $null = gh copilot --version 2>&1
-    } catch {
-        Write-Log "GitHub Copilot CLI extension not found." -Level Error
-        Write-Log "Install with: gh extension install github/gh-copilot" -Level Error
-        exit 1
+    if (Get-Command gh -ErrorAction SilentlyContinue) {
+        try {
+            $null = gh copilot --version 2>&1
+        } catch {
+            Write-Log "GitHub Copilot CLI extension not found" -Level Warning
+            $missingDeps = $true
+        }
+    }
+    
+    # Check for jq (used for JSON parsing in some operations)
+    if (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
+        Write-Log "jq not found (optional but recommended)" -Level Warning
+        # Not critical for PowerShell as we use ConvertFrom-Json
+    }
+    
+    # If missing dependencies, offer to install
+    if ($missingDeps) {
+        Write-Host ""
+        Write-Log "Some dependencies are missing."
+        
+        if ($script:AutoInstall.IsPresent) {
+            Write-Log "Auto-installing dependencies..."
+            if (Test-Path $InstallScript) {
+                & $InstallScript -Auto
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Log "Failed to install dependencies" -Level Error
+                    exit 1
+                }
+            } else {
+                Write-Log "Install script not found: $InstallScript" -Level Error
+                exit 1
+            }
+        } elseif ($script:SkipInstall.IsPresent) {
+            Write-Log "Missing dependencies and -SkipInstall specified" -Level Error
+            Write-Log "Install manually or run without -SkipInstall" -Level Error
+            exit 1
+        } else {
+            # Interactive prompt
+            Write-Host ""
+            $response = Read-Host "Would you like to install missing dependencies? [Y/n]"
+            
+            if ($response -match "^[nN]") {
+                Write-Log "Cannot proceed without required dependencies" -Level Error
+                exit 1
+            }
+            
+            if (Test-Path $InstallScript) {
+                & $InstallScript
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Log "Failed to install some dependencies" -Level Error
+                    exit 1
+                }
+            } else {
+                Write-Log "Install script not found: $InstallScript" -Level Error
+                exit 1
+            }
+        }
+        
+        # Re-verify after installation
+        Write-Log "Verifying dependencies after installation..."
+        
+        # Refresh PATH
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+        
+        if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+            Write-Log "GitHub CLI (gh) still not available" -Level Error
+            exit 1
+        }
+        
+        try {
+            $null = gh copilot --version 2>&1
+        } catch {
+            Write-Log "GitHub Copilot CLI extension still not available" -Level Error
+            exit 1
+        }
     }
     
     # Check for feature list
@@ -384,6 +458,8 @@ OPTIONS:
     -Once               Run single iteration (for testing)
     -Resume             Resume from saved state
     -Reset              Reset state and start fresh
+    -AutoInstall        Auto-install missing dependencies without prompting
+    -SkipInstall        Fail if dependencies missing (never prompt)
     -Help               Show this help message
 
 EXAMPLES:
@@ -392,6 +468,7 @@ EXAMPLES:
     .\ralph.ps1 -Profile locked
     .\ralph.ps1 -Once
     .\ralph.ps1 -Resume
+    .\ralph.ps1 -AutoInstall
 "@
     exit 0
 }
