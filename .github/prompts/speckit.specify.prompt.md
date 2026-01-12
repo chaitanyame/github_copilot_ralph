@@ -108,10 +108,10 @@ Created feature branch: 003-real-time-chat
 Created specification: specs/003-real-time-chat/spec.md
 
 Next steps:
-1. /speckit.plan - Create implementation plan
+1. /speckit.plan - Create implementation plan (detects tech stack)
 2. /speckit.tasks - Generate task list
 3. /harness.generate - Convert to feature_list.json
-4. @Coder - Implement features on this branch
+4. @Coder or Ralph - Implement features on this branch
 ```
 
 ## Example
