@@ -46,6 +46,22 @@ else
     echo -e "${YELLOW}⚠${NC} Python not found (optional, needed for Python projects)"
 fi
 
+# Check GitHub CLI
+if command -v gh &> /dev/null; then
+    echo -e "${GREEN}✓${NC} GitHub CLI installed: $(gh --version | head -n 1)"
+    
+    # Check for Copilot extension
+    if gh copilot --version &> /dev/null; then
+        echo -e "${GREEN}✓${NC} GitHub Copilot CLI extension installed"
+    else
+        echo -e "${YELLOW}⚠${NC} GitHub Copilot CLI extension not found (needed for autonomous mode)"
+        echo -e "  Install with: ${NC}gh extension install github/gh-copilot"
+    fi
+else
+    echo -e "${YELLOW}⚠${NC} GitHub CLI not found (needed for autonomous mode)"
+    echo -e "  Install from: ${NC}https://cli.github.com/"
+fi
+
 echo ""
 
 # Check required directories

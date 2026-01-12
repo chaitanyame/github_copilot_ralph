@@ -1,0 +1,25 @@
+{
+  "iteration": 0,
+  "started_at": null,
+  "last_feature": null,
+  "updated_at": null,
+  "_meta": {
+    "description": "Ralph autonomous loop state for resume capability",
+    "version": "1.0.0"
+  },
+  "_instructions": {
+    "purpose": "Tracks autonomous loop progress to enable resume after interruption",
+    "fields": {
+      "iteration": "Current iteration number (0-based)",
+      "started_at": "ISO 8601 timestamp when loop started",
+      "last_feature": "Feature ID of last attempted feature",
+      "updated_at": "ISO 8601 timestamp of last state update"
+    },
+    "usage": [
+      "Created automatically by ralph.sh/ralph.ps1",
+      "Updated after each iteration",
+      "Used to resume interrupted sessions with --resume flag",
+      "Can be deleted to start fresh (or use --reset flag)"
+    ]
+  }
+}

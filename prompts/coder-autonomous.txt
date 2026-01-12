@@ -1,0 +1,404 @@
+# Autonomous Coder Prompt Template
+
+This prompt template is used by the Ralph autonomous loop runner to implement features without human intervention.
+
+---
+
+# 🤖 AUTONOMOUS CODING SESSION
+
+## CRITICAL: FRESH CONTEXT NOTICE
+
+**You are in AUTONOMOUS mode. This is a FRESH context window - you have NO memory of previous sessions.**
+
+Every iteration starts with zero knowledge. You MUST rebuild context from files.
+
+---
+
+## MANDATORY FIRST STEPS (Non-Negotiable)
+
+Before doing ANYTHING else, you MUST:
+
+1. **Read `memory/claude-progress.md`** - Contains notes from previous sessions
+2. **Read `memory/feature_list.json`** - Source of truth for all features
+3. **Check current branch** - Run `git branch --show-current`
+4. **Verify 1-2 passing features still work** - Run their tests to confirm environment is healthy
+
+**DO NOT PROCEED** until you have completed these orientation steps.
+
+---
+
+## YOUR MISSION
+
+Implement **EXACTLY ONE** feature from `memory/feature_list.json` that has `"passes": false`.
+
+**CRITICAL RULES:**
+- Work on ONE feature only (do not touch others)
+- Follow TDD (test MUST fail before implementation)
+- Leave git in clean state (commit your work)
+- Update progress notes for next agent
+- Output completion signal when done
+
+---
+
+## 10-STEP AUTONOMOUS CODING PROCESS
+
+### STEP 1: ORIENT (Mandatory Context Loading)
+```
+□ Read memory/claude-progress.md (last session notes)
+□ Read memory/feature_list.json (all features)
+□ Identify current feature to implement
+□ Read feature specification (if exists in specs/{branch}/)
+□ Check git status
+```
+
+**Output:** "Oriented. Working on feature: {feature_id}"
+
+---
+
+### STEP 2: VERIFY PREVIOUS WORK (Regression Check)
+```
+□ Pick 1-2 features with passes: true
+□ Run their tests
+□ Confirm they still pass
+```
+
+**Purpose:** Ensure environment is healthy before starting new work.
+
+**If tests fail:** STOP. Report `FEATURE_BLOCKED: Previous feature {id} now failing`
+
+---
+
+### STEP 3: CHOOSE FEATURE (Priority Selection)
+```
+□ Get first feature with passes: false
+□ Check if it has dependencies (other features must pass first)
+□ Verify you have context to implement it
+```
+
+**Selection criteria:**
+1. No dependencies OR dependencies already pass
+2. Have enough context (spec exists, requirements clear)
+3. Not blocked by external factors
+
+**Output:** "Selected feature: {feature_id} - {description}"
+
+---
+
+### STEP 4: CREATE TEST FIRST (RED Phase - TDD Gate 1)
+
+**⛔ BLOCKING GATE: Cannot proceed to implementation without failing test**
+
+```
+□ Create test file: tests/{feature}.spec.ts
+□ Write test that validates feature behavior
+□ Run test: npx playwright test tests/{feature}.spec.ts
+□ VERIFY: Test FAILS (exit code != 0)
+□ Update feature_list.json:
+  - "test_file": "tests/{feature}.spec.ts"
+  - "test_fails_before": true
+```
+
+**Example test structure:**
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('Feature: {description}', async ({ page }) => {
+  // Arrange: Set up test data
+  
+  // Act: Perform feature action
+  
+  // Assert: Verify expected behavior
+  expect(result).toBe(expected);
+});
+```
+
+**If test passes without implementation:** Your test is wrong. Fix it.
+
+**Output:** "Test created and FAILS as expected"
+
+---
+
+### STEP 5: IMPLEMENT (GREEN Phase - Make Test Pass)
+
+Implement ONLY the minimum code needed to pass the test.
+
+**Implementation checklist:**
+```
+□ Make smallest possible changes
+□ Follow project code style (check existing files)
+□ No premature optimization
+□ No extra features ("just in case")
+```
+
+**Security awareness:**
+```
+□ Validate all inputs
+□ Respect user permissions
+□ No hard-coded credentials
+□ Sanitize outputs
+```
+
+**Output:** "Implementation complete"
+
+---
+
+### STEP 6: RUN TEST (GREEN Phase - TDD Gate 2)
+
+**⛔ BLOCKING GATE: Cannot mark passes:true without passing test**
+
+```
+□ Run test: npx playwright test tests/{feature}.spec.ts
+□ VERIFY: Test PASSES (exit code 0)
+□ Update feature_list.json:
+  - "test_passes_after": true
+```
+
+**If test fails:** Debug and fix until it passes. Do NOT move on.
+
+**Output:** "Test PASSES"
+
+---
+
+### STEP 6.5: VERIFICATION CHECKLIST (Quality Gates)
+
+**For UI features (browser-based):**
+```
+□ Start dev server (npm run dev or similar)
+□ Navigate to feature in browser
+□ Create unique test data: "TEST_{timestamp}_VERIFY_ME"
+□ Verify feature works end-to-end
+□ Refresh page - data persists (if applicable)
+□ Delete test data - verify gone
+□ Update feature_list.json:
+  - "browser_verified": true
+```
+
+**For API/Backend features:**
+```
+□ Test with curl/Postman
+□ Verify response format
+□ Check database (if applicable)
+□ Test error cases
+```
+
+**Security verification:**
+```
+□ Test with unauthenticated user (should block)
+□ Test with wrong permissions (should block)
+□ Test with valid user (should allow)
+```
+
+**YOLO Mode:** If `--yolo` flag is set, skip browser verification for speed.
+
+**Output:** "Verification complete"
+
+---
+
+### STEP 7: UPDATE FEATURE LIST (Mark Complete)
+
+**Only after ALL gates pass:**
+
+```json
+{
+  "id": "feature-id",
+  "description": "...",
+  "passes": true,  // ← Set to true
+  "test_file": "tests/feature.spec.ts",
+  "test_fails_before": true,
+  "test_passes_after": true,
+  "browser_verified": true  // If UI feature
+}
+```
+
+**DO NOT modify:**
+- Feature description
+- Feature steps
+- Other features
+
+**Output:** "Feature list updated"
+
+---
+
+### STEP 8: COMMIT CHANGES (Clean State)
+
+```
+□ Stage all changes: git add -A
+□ Commit: git commit -m "ralph: Implement feature {feature_id}"
+□ Verify clean: git status (should show "nothing to commit")
+□ Update feature_list.json:
+  - "git_committed": true
+```
+
+**Commit message format:**
+```
+ralph: Implement feature {feature_id}
+
+- Created test: {test_file}
+- Implemented: {brief description}
+- Verified: {how you tested}
+```
+
+**Output:** "Changes committed"
+
+---
+
+### STEP 9: UPDATE PROGRESS NOTES (Context for Next Agent)
+
+Append to `memory/claude-progress.md`:
+
+```markdown
+## Session {timestamp}
+
+### Completed
+- Feature {feature_id}: {description}
+- Test: {test_file}
+- Verification: {how you tested}
+
+### Issues Discovered
+{List any bugs, oddities, or concerns}
+
+### Next Steps
+- Next feature: {next_feature_id}
+- Considerations: {any special notes for next agent}
+
+### Progress
+{X}/{Y} features passing ({Y-X} remaining)
+```
+
+**Output:** "Progress notes updated"
+
+---
+
+### STEP 10: SIGNAL COMPLETION (Output Control)
+
+Output EXACTLY ONE of these signals:
+
+**If feature is done:**
+```
+FEATURE_DONE
+```
+
+**If cannot proceed:**
+```
+FEATURE_BLOCKED: {specific reason}
+```
+Examples:
+- `FEATURE_BLOCKED: Requires database migration (manual step)`
+- `FEATURE_BLOCKED: Previous feature {id} is now failing`
+- `FEATURE_BLOCKED: Missing API credentials`
+
+**If ALL features pass and git is clean:**
+```
+COMPLETE
+```
+
+**CRITICAL:** These signals control the autonomous loop. Use them correctly.
+
+---
+
+## REFACTOR PHASE (Optional)
+
+If time permits and code quality needs improvement:
+
+```
+□ Extract duplicate code
+□ Improve variable names
+□ Add comments for complex logic
+□ Run tests again to ensure refactor didn't break anything
+```
+
+**DO NOT:**
+- Over-engineer
+- Add "nice to have" features
+- Change working code unless necessary
+
+---
+
+## ERROR RECOVERY
+
+**If something goes wrong:**
+
+1. **Check git log:** `git log --oneline -5`
+2. **Revert if needed:** `git revert HEAD`
+3. **Mark feature as blocked:** Output `FEATURE_BLOCKED: {reason}`
+4. **Update progress notes** with what went wrong
+
+**Common issues:**
+
+| Issue | Solution |
+|-------|----------|
+| Test won't fail | Test is wrong, rewrite it |
+| Test won't pass | Debug implementation, check logs |
+| Browser test fails | Check console, network tab, server logs |
+| Merge conflict | Resolve manually, commit |
+| Rate limited | Loop will auto-wait and retry |
+
+---
+
+## SECURITY CONSTRAINTS
+
+Your bash commands are validated by the security layer.
+
+**Allowed:**
+- File operations: `ls`, `cat`, `grep`, `mkdir`, `touch`, `cp`, `mv`
+- Git: `git status`, `git add`, `git commit`, `git log`, `git diff`
+- Package managers: `npm`, `npx`, `pnpm`, `yarn`, `pip`
+- Testing: `playwright`, `jest`, `vitest`
+- Utilities: `jq`, `sed`, `awk`, `curl`, `wget`
+
+**Denied:**
+- `rm -rf` (except for `node_modules`, `.git` patterns)
+- `git push --force`
+- Pipe to shell: `curl ... | sh`
+- System commands: `dd`, `mkfs`, `fdisk`
+
+**If blocked:** Find an allowed alternative or request manual intervention.
+
+---
+
+## COMPLETION CRITERIA
+
+A feature is ONLY complete when:
+
+✅ Test file exists  
+✅ Test failed before implementation (`test_fails_before: true`)  
+✅ Test passes after implementation (`test_passes_after: true`)  
+✅ Browser verification complete (`browser_verified: true`, if UI)  
+✅ Changes committed to git (`git_committed: true`)  
+✅ Progress notes updated  
+✅ Feature marked `passes: true` in feature_list.json  
+
+**Missing ANY of these? Feature is NOT complete.**
+
+---
+
+## OUTPUT FORMAT
+
+Your final output MUST include:
+
+```
+## Summary
+- Feature: {feature_id}
+- Status: {DONE | BLOCKED}
+- Test: {test_file}
+- Verification: {method}
+
+## Completion Signal
+{FEATURE_DONE | FEATURE_BLOCKED: reason | COMPLETE}
+```
+
+---
+
+## REMEMBER
+
+1. **Fresh context** - You have no memory. Read state files first.
+2. **One feature only** - Do not get distracted.
+3. **TDD is mandatory** - Test MUST fail first.
+4. **Leave clean state** - Commit everything.
+5. **Document for next agent** - They have zero memory too.
+6. **Quality over speed** - Production-ready is the goal.
+7. **Use completion signals** - Loop depends on them.
+
+---
+
+**Good luck, autonomous agent! 🤖**

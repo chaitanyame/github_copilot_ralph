@@ -77,6 +77,41 @@ Makes incremental progress:
 - Tests before marking complete
 - Leaves clean state for next session
 
+## Autonomous Mode (Ralph)
+
+For unattended implementation, use the **Ralph autonomous loop runner**:
+
+```bash
+# Bash
+./scripts/bash/ralph.sh --max-iterations 50
+
+# PowerShell
+.\scripts\powershell\ralph.ps1 -MaxIterations 50
+```
+
+**How it works:**
+1. Reads `feature_list.json` and selects next feature with `passes: false`
+2. Invokes Copilot CLI with autonomous coding prompt
+3. Agent implements ONE feature following 10-step TDD process
+4. Commits changes and updates progress
+5. Repeats until all features pass or max iterations reached
+
+**Security:** All bash commands are validated through 3-layer defense:
+- ✅ Allowlist (only safe commands permitted)
+- ✅ Deny list (dangerous patterns blocked)
+- ✅ Context validation (e.g., `rm -rf` only for safe patterns)
+
+**Options:**
+```bash
+--max-iterations N    # Maximum loops (default: 50)
+--profile PROFILE     # Security: locked, safe, dev (default: safe)
+--once                # Single iteration (for testing)
+--resume              # Resume from saved state
+--reset               # Reset state and start fresh
+```
+
+See [Autonomous Mode Guide](#autonomous-mode-guide) for details.
+
 ## Directory Structure
 
 ```
@@ -200,6 +235,140 @@ Use this for simpler projects:
 | `/harness.resume` | Resume from checkpoint |
 | `/harness.issue` | Add adhoc bug, hotfix, or request |
 | `/harness.issues` | View issue tracking dashboard |
+
+## Autonomous Mode Guide
+
+### When to Use Autonomous Mode
+
+**Use autonomous mode (Ralph) when:**
+- ✅ Feature list is well-defined with clear acceptance criteria
+- ✅ Running overnight or unattended
+- ✅ Batch processing multiple features
+- ✅ All features follow similar patterns
+
+**Use interactive mode (@Coder) when:**
+- ❌ Requirements are ambiguous
+- ❌ Need to debug complex issues
+- ❌ Features require human judgment
+- ❌ Learning or exploring the codebase
+
+### Prerequisites
+
+1. **Install GitHub Copilot CLI:**
+```bash
+gh extension install github/gh-copilot
+```
+
+2. **Verify installation:**
+```bash
+gh copilot --version
+```
+
+3. **Create feature list:**
+```
+@Initializer Set up [your project]
+```
+
+### Running Autonomous Loop
+
+**Basic usage:**
+```bash
+# Bash (Linux/Mac)
+./scripts/bash/ralph.sh
+
+# PowerShell (Windows)
+.\scripts\powershell\ralph.ps1
+```
+
+**Advanced usage:**
+```bash
+# Run up to 100 iterations
+./scripts/bash/ralph.sh --max-iterations 100
+
+# Use restrictive security profile
+./scripts/bash/ralph.sh --profile locked
+
+# Test single iteration
+./scripts/bash/ralph.sh --once
+
+# Resume interrupted session
+./scripts/bash/ralph.sh --resume
+
+# Reset and start fresh
+./scripts/bash/ralph.sh --reset
+```
+
+### Security Profiles
+
+| Profile | Allows | Use Case |
+|---------|--------|----------|
+| `locked` | File operations only | Maximum safety |
+| `safe` (default) | git, npm, npx, playwright | Normal development |
+| `dev` | Broader shell access | Advanced use |
+
+**All profiles block:**
+- `rm -rf` (except node_modules, .git)
+- `git push --force`
+- Pipe to shell (`curl ... \| sh`)
+- System commands (dd, mkfs, fdisk)
+
+### Monitoring Progress
+
+**Check status:**
+```bash
+# View progress notes
+cat memory/claude-progress.md
+
+# Check feature stats
+jq '[.features[] | select(.passes == true)] | length' memory/feature_list.json
+
+# View state
+cat memory/.ralph/state.json
+```
+
+**Watch in real-time:**
+```bash
+# Bash
+tail -f memory/claude-progress.md
+
+# PowerShell
+Get-Content memory\claude-progress.md -Wait
+```
+
+### Stopping and Resuming
+
+**Stop gracefully:** Press `Ctrl+C` (state is saved after each iteration)
+
+**Resume:** Run with `--resume` flag
+```bash
+./scripts/bash/ralph.sh --resume
+```
+
+**Reset state:**
+```bash
+./scripts/bash/ralph.sh --reset
+```
+
+### Completion Criteria
+
+Ralph exits with success when:
+1. ✅ All features in `feature_list.json` have `passes: true`
+2. ✅ All TDD gates pass (`test_fails_before` and `test_passes_after`)
+3. ✅ Git working tree is clean (no uncommitted changes)
+
+### Troubleshooting
+
+**Issue:** Rate limited
+- **Solution:** Ralph auto-detects and waits. Clamps max wait to 1 hour.
+
+**Issue:** Feature blocked
+- **Solution:** Agent outputs `FEATURE_BLOCKED: reason`. Fix manually and resume.
+
+**Issue:** Loop stuck on same feature
+- **Solution:** Check `memory/claude-progress.md` for errors. Fix issue, mark feature `passes: false`, and resume.
+
+**Issue:** Security rejection
+- **Solution:** Command not in allowlist. Either add to `scripts/security.sh` or perform manually.
 
 ## Customization
 

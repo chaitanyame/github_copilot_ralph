@@ -1,0 +1,432 @@
+#!/bin/bash
+# Ralph - Autonomous loop runner for GitHub Copilot CLI
+# Implements continuous feature implementation until all features pass
+
+set -euo pipefail
+
+# ==============================================================================
+# Configuration
+# ==============================================================================
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+SECURITY_SCRIPT="$PROJECT_ROOT/scripts/security.sh"
+
+# Source security layer
+source "$SECURITY_SCRIPT"
+
+# Default configuration
+MAX_ITERATIONS=${MAX_ITERATIONS:-50}
+ALLOW_PROFILE=${ALLOW_PROFILE:-"safe"}
+FEATURE_LIST="$PROJECT_ROOT/memory/feature_list.json"
+PROGRESS_FILE="$PROJECT_ROOT/memory/claude-progress.md"
+STATE_FILE="$PROJECT_ROOT/memory/.ralph/state.json"
+PROMPT_FILE="$PROJECT_ROOT/prompts/coder-autonomous.txt"
+AUTO_CONTINUE_DELAY=${AUTO_CONTINUE_DELAY:-3}
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# ==============================================================================
+# Utility Functions
+# ==============================================================================
+log() {
+    echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $*"
+}
+
+log_success() {
+    echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} ✓ $*"
+}
+
+log_error() {
+    echo -e "${RED}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} ✗ $*"
+}
+
+log_warning() {
+    echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} ⚠ $*"
+}
+
+# ==============================================================================
+# Prerequisites Check
+# ==============================================================================
+check_prerequisites() {
+    log "Checking prerequisites..."
+    
+    # Check for gh CLI
+    if ! command -v gh &> /dev/null; then
+        log_error "GitHub CLI (gh) not found. Install from https://cli.github.com/"
+        exit 1
+    fi
+    
+    # Check for gh copilot extension
+    if ! gh copilot --version &> /dev/null; then
+        log_error "GitHub Copilot CLI extension not found."
+        log_error "Install with: gh extension install github/gh-copilot"
+        exit 1
+    fi
+    
+    # Check for jq
+    if ! command -v jq &> /dev/null; then
+        log_error "jq not found. Install from https://jqlang.github.io/jq/"
+        exit 1
+    fi
+    
+    # Check for feature list
+    if [[ ! -f "$FEATURE_LIST" ]]; then
+        log_error "Feature list not found: $FEATURE_LIST"
+        exit 1
+    fi
+    
+    # Check for prompt template
+    if [[ ! -f "$PROMPT_FILE" ]]; then
+        log_error "Prompt template not found: $PROMPT_FILE"
+        log_warning "Please create prompts/coder-autonomous.txt"
+        exit 1
+    fi
+    
+    log_success "All prerequisites met"
+}
+
+# ==============================================================================
+# State Management
+# ==============================================================================
+init_state() {
+    mkdir -p "$(dirname "$STATE_FILE")"
+    
+    if [[ -f "$STATE_FILE" ]]; then
+        log "Resuming from previous state"
+        ITERATION=$(jq -r '.iteration // 0' "$STATE_FILE")
+    else
+        log "Initializing new state"
+        ITERATION=0
+        echo '{
+  "iteration": 0,
+  "started_at": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",
+  "last_feature": null
+}' > "$STATE_FILE"
+    fi
+}
+
+update_state() {
+    local iteration=$1
+    local last_feature=$2
+    
+    jq --arg iter "$iteration" \
+       --arg feature "$last_feature" \
+       --arg updated "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+       '.iteration = ($iter | tonumber) | .last_feature = $feature | .updated_at = $updated' \
+       "$STATE_FILE" > "$STATE_FILE.tmp"
+    mv "$STATE_FILE.tmp" "$STATE_FILE"
+}
+
+# ==============================================================================
+# Feature Management
+# ==============================================================================
+get_feature_stats() {
+    local total=$(jq '[.features[]] | length' "$FEATURE_LIST")
+    local passing=$(jq '[.features[] | select(.passes == true)] | length' "$FEATURE_LIST")
+    local failing=$(jq '[.features[] | select(.passes == false)] | length' "$FEATURE_LIST")
+    
+    echo "$passing/$total passing ($failing remaining)"
+}
+
+get_next_feature() {
+    # Get first feature with passes: false
+    jq -r '.features[] | select(.passes == false) | .id' "$FEATURE_LIST" | head -n 1
+}
+
+all_features_passing() {
+    local failing=$(jq '[.features[] | select(.passes == false)] | length' "$FEATURE_LIST")
+    [[ $failing -eq 0 ]]
+}
+
+# ==============================================================================
+# Rate Limit Handling
+# ==============================================================================
+parse_rate_limit_delay() {
+    local response="$1"
+    
+    # Try to extract reset time from response
+    # Format: "resets at 2:30pm" or "resets in 5 minutes"
+    if echo "$response" | grep -qi "rate limit"; then
+        # Default to 60 seconds if can't parse
+        local delay=60
+        
+        # Try to extract minutes
+        if echo "$response" | grep -Eqi "resets? in ([0-9]+) minutes?"; then
+            delay=$(echo "$response" | grep -Eoi "resets? in ([0-9]+) minutes?" | grep -Eo '[0-9]+')
+            delay=$((delay * 60))
+        fi
+        
+        # Clamp to max 1 hour
+        if [[ $delay -gt 3600 ]]; then
+            delay=3600
+        fi
+        
+        echo "$delay"
+    else
+        echo "0"
+    fi
+}
+
+# ==============================================================================
+# Git Operations
+# ==============================================================================
+ensure_clean_state() {
+    if ! git diff --quiet || ! git diff --cached --quiet; then
+        log_warning "Working tree has uncommitted changes"
+        return 1
+    fi
+    return 0
+}
+
+commit_if_needed() {
+    if git diff --quiet && git diff --cached --quiet; then
+        log "No changes to commit"
+        return 0
+    fi
+    
+    local feature_id=$1
+    local commit_msg="ralph: Implement feature $feature_id"
+    
+    git add -A
+    git commit -m "$commit_msg"
+    log_success "Committed: $commit_msg"
+}
+
+# ==============================================================================
+# Copilot Execution
+# ==============================================================================
+run_copilot_iteration() {
+    local iteration=$1
+    local feature_id=$2
+    
+    log "Running Copilot for feature: $feature_id"
+    
+    # Build context prompt
+    local context_prompt=$(cat <<EOF
+# AUTONOMOUS CODING SESSION - ITERATION $iteration
+
+You are in AUTONOMOUS mode. This is a FRESH context - you have no memory of previous sessions.
+
+## Current Feature
+Feature ID: $feature_id
+
+## Context Files to Read
+1. memory/feature_list.json - All features and their status
+2. memory/claude-progress.md - Notes from previous sessions
+3. Feature specification (if exists)
+
+## Your Task
+Implement ONLY feature $feature_id following the 10-step autonomous coding process.
+See prompts/coder-autonomous.txt for full instructions.
+
+## Output Requirements
+After completing the feature, output EXACTLY ONE of:
+- FEATURE_DONE - Feature is complete and verified
+- FEATURE_BLOCKED: <reason> - Cannot proceed
+- COMPLETE - ALL features pass and git is clean
+
+EOF
+)
+    
+    # Run gh copilot with security profile
+    local output_file="/tmp/ralph-copilot-output-$iteration.txt"
+    
+    if gh copilot suggest --target shell "$context_prompt" > "$output_file" 2>&1; then
+        log_success "Copilot iteration completed"
+        cat "$output_file"
+        
+        # Check for completion signals
+        if grep -q "FEATURE_DONE" "$output_file"; then
+            log_success "Feature marked done"
+            return 0
+        elif grep -q "COMPLETE" "$output_file"; then
+            log_success "All features complete!"
+            return 2
+        elif grep -q "FEATURE_BLOCKED" "$output_file"; then
+            log_error "Feature blocked"
+            cat "$output_file" | grep "FEATURE_BLOCKED"
+            return 1
+        fi
+    else
+        log_error "Copilot execution failed"
+        cat "$output_file"
+        
+        # Check for rate limiting
+        if grep -qi "rate limit" "$output_file"; then
+            local delay=$(parse_rate_limit_delay "$(cat "$output_file")")
+            log_warning "Rate limited. Waiting $delay seconds..."
+            sleep "$delay"
+            return 3  # Signal to retry
+        fi
+        
+        return 1
+    fi
+    
+    return 0
+}
+
+# ==============================================================================
+# Main Loop
+# ==============================================================================
+main_loop() {
+    log "Starting autonomous loop (max $MAX_ITERATIONS iterations)"
+    log "Feature list: $FEATURE_LIST"
+    log "Security profile: $ALLOW_PROFILE"
+    
+    for ((i=ITERATION; i<MAX_ITERATIONS; i++)); do
+        log ""
+        log "========================================="
+        log "ITERATION $(($i + 1))/$MAX_ITERATIONS"
+        log "========================================="
+        
+        # Get current stats
+        local stats=$(get_feature_stats)
+        log "Progress: $stats"
+        
+        # Check if all features pass
+        if all_features_passing; then
+            log_success "All features passing!"
+            
+            # Verify git is clean
+            if ensure_clean_state; then
+                log_success "Git working tree is clean"
+                log_success "🎉 AUTONOMOUS SESSION COMPLETE! 🎉"
+                exit 0
+            else
+                log_warning "Working tree has uncommitted changes. Commit manually."
+                exit 1
+            fi
+        fi
+        
+        # Get next feature
+        local next_feature=$(get_next_feature)
+        if [[ -z "$next_feature" ]]; then
+            log_error "No next feature found but features are still failing"
+            exit 1
+        fi
+        
+        log "Next feature: $next_feature"
+        
+        # Run Copilot
+        run_copilot_iteration "$i" "$next_feature"
+        local result=$?
+        
+        # Handle result
+        case $result in
+            0)  # Feature done
+                update_state "$i" "$next_feature"
+                commit_if_needed "$next_feature"
+                log "Continuing in ${AUTO_CONTINUE_DELAY}s..."
+                sleep "$AUTO_CONTINUE_DELAY"
+                ;;
+            1)  # Error
+                log_error "Iteration failed. Stopping."
+                update_state "$i" "$next_feature"
+                exit 1
+                ;;
+            2)  # Complete
+                log_success "Session complete!"
+                exit 0
+                ;;
+            3)  # Rate limited, retry
+                log "Retrying iteration..."
+                continue
+                ;;
+        esac
+    done
+    
+    log_warning "Reached maximum iterations ($MAX_ITERATIONS)"
+    log "Progress: $(get_feature_stats)"
+    log "Run again to continue or increase MAX_ITERATIONS"
+}
+
+# ==============================================================================
+# CLI Entry Point
+# ==============================================================================
+show_usage() {
+    cat <<EOF
+Usage: ralph.sh [OPTIONS]
+
+Autonomous loop runner for GitHub Copilot CLI
+
+OPTIONS:
+    --max-iterations N    Maximum iterations (default: 50)
+    --profile PROFILE     Security profile: locked, safe, dev (default: safe)
+    --once                Run single iteration (for testing)
+    --resume              Resume from saved state
+    --reset               Reset state and start fresh
+    -h, --help            Show this help message
+
+EXAMPLES:
+    ./ralph.sh                              # Run with defaults
+    ./ralph.sh --max-iterations 100         # Run up to 100 iterations
+    ./ralph.sh --profile locked             # Restricted permissions
+    ./ralph.sh --once                       # Single iteration
+    ./ralph.sh --resume                     # Resume interrupted session
+
+EOF
+}
+
+# Parse arguments
+RUN_ONCE=0
+RESET_STATE=0
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --max-iterations)
+            MAX_ITERATIONS="$2"
+            shift 2
+            ;;
+        --profile)
+            ALLOW_PROFILE="$2"
+            shift 2
+            ;;
+        --once)
+            RUN_ONCE=1
+            shift
+            ;;
+        --resume)
+            # State is loaded by init_state
+            shift
+            ;;
+        --reset)
+            RESET_STATE=1
+            shift
+            ;;
+        -h|--help)
+            show_usage
+            exit 0
+            ;;
+        *)
+            log_error "Unknown option: $1"
+            show_usage
+            exit 1
+            ;;
+    esac
+done
+
+# ==============================================================================
+# Main Execution
+# ==============================================================================
+cd "$PROJECT_ROOT"
+
+check_prerequisites
+
+if [[ $RESET_STATE -eq 1 ]]; then
+    log "Resetting state..."
+    rm -f "$STATE_FILE"
+fi
+
+init_state
+
+if [[ $RUN_ONCE -eq 1 ]]; then
+    log "Running single iteration (test mode)"
+    MAX_ITERATIONS=$((ITERATION + 1))
+fi
+
+main_loop

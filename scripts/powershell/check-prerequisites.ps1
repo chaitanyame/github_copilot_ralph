@@ -38,6 +38,24 @@ if (Get-Command python -ErrorAction SilentlyContinue) {
     Write-Host "⚠ Python not found (optional, needed for Python projects)" -ForegroundColor Yellow
 }
 
+# Check GitHub CLI
+if (Get-Command gh -ErrorAction SilentlyContinue) {
+    $ghVersion = gh --version | Select-Object -First 1
+    Write-Host "✓ GitHub CLI installed: $ghVersion" -ForegroundColor Green
+    
+    # Check for Copilot extension
+    try {
+        $null = gh copilot --version 2>&1
+        Write-Host "✓ GitHub Copilot CLI extension installed" -ForegroundColor Green
+    } catch {
+        Write-Host "⚠ GitHub Copilot CLI extension not found (needed for autonomous mode)" -ForegroundColor Yellow
+        Write-Host "  Install with: gh extension install github/gh-copilot" -ForegroundColor Gray
+    }
+} else {
+    Write-Host "⚠ GitHub CLI not found (needed for autonomous mode)" -ForegroundColor Yellow
+    Write-Host "  Install from: https://cli.github.com/" -ForegroundColor Gray
+}
+
 Write-Host ""
 
 # Check required directories

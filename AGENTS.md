@@ -26,6 +26,44 @@ Agents working across many sessions face a core challenge: **each new session st
 6. Repeat @Coder until all features pass
 7. Create PR to merge to dev
 
+**OR use Autonomous Mode:**
+
+5. `./scripts/bash/ralph.sh` - Autonomous loop runner
+6. Ralph implements ALL features unattended
+7. Create PR when loop completes
+
+## Autonomous Mode (Ralph Runner)
+
+For unattended batch implementation, use the Ralph autonomous loop instead of manual `@Coder` invocations:
+
+```bash
+# Start autonomous implementation
+./scripts/bash/ralph.sh --max-iterations 50
+
+# Or PowerShell
+.\scripts\powershell\ralph.ps1 -MaxIterations 50
+```
+
+**How Ralph Works:**
+1. Fresh Copilot CLI session per iteration
+2. Reads feature_list.json + progress notes
+3. Implements ONE feature following 10-step TDD process
+4. Commits and updates state
+5. Auto-continues until all features pass
+
+**Security:** 3-layer defense (allowlist, deny list, validation)
+
+**When to use Ralph vs @Coder:**
+
+| Aspect | @Coder (Interactive) | Ralph (Autonomous) |
+|--------|---------------------|-------------------|
+| Clarity | Ambiguous features | Well-defined features |
+| Debugging | Complex issues | Straightforward implementation |
+| Supervision | Needed | Unattended (overnight) |
+| Scale | 1-5 features | 10-50 features |
+
+See [README Autonomous Mode Guide](README.md#autonomous-mode-guide) for full documentation.
+
 ## Branch Strategy
 
 Branches are created by **Spec Kit**, not manually:

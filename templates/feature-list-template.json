@@ -24,9 +24,18 @@
         "2. Run test - verify it FAILS (set test_fails_before: true)",
         "3. ONLY THEN write implementation code",
         "4. Run test - verify it PASSES (set test_passes_after: true)",
-        "5. Set passes: true"
+        "5. Verify feature end-to-end (set browser_verified: true if UI)",
+        "6. Commit changes (set git_committed: true)",
+        "7. Set passes: true"
       ],
-      "violation": "Setting passes:true without test_passes_after:true is a TDD violation"
+      "violation": "Setting passes:true without test_passes_after:true is a TDD violation",
+      "gates": {
+        "test_file": "Path to test file (e.g., tests/feature.spec.ts)",
+        "test_fails_before": "Test must FAIL before implementation (RED phase)",
+        "test_passes_after": "Test must PASS after implementation (GREEN phase)",
+        "browser_verified": "For UI features: manual browser verification required",
+        "git_committed": "Changes must be committed before marking passes:true"
+      }
     },
     "categories": {
       "setup": "Project initialization and configuration",
@@ -57,6 +66,8 @@
       "test_file": null,
       "test_fails_before": false,
       "test_passes_after": false,
+      "browser_verified": false,
+      "git_committed": false,
       "passes": false
     },
     {
@@ -72,6 +83,8 @@
       "test_file": null,
       "test_fails_before": false,
       "test_passes_after": false,
+      "browser_verified": false,
+      "git_committed": false,
       "passes": false
     }
   ]
