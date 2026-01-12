@@ -16,15 +16,24 @@ Agents working across many sessions face a core challenge: **each new session st
 ## Solution: Spec Kit + Harness Integration
 
 ### Spec Kit Workflow (Planning Phase)
-1. `/speckit.specify` - Creates specification + **auto-creates branch**
-2. `/speckit.plan` - Creates implementation plan
-3. `/speckit.tasks` - Generates task list
-4. `/harness.generate` - Converts tasks to feature_list.json
+1. `/speckit.constitution` - Establish project principles and quality standards
+2. `/speckit.specify` - Creates specification + **auto-creates branch**
+3. `/speckit.plan` - User provides tech stack OR Q&A guides selection → creates plan
+4. `/speckit.tasks` - Generates task list
+5. `/harness.generate` - Converts tasks to feature_list.json
+
+### Tech Stack Selection (During /speckit.plan)
+
+| Mode | When | How |
+|------|------|-----|
+| **Expert** | User knows the stack | `/speckit.plan Use React + Vite + TailwindCSS` |
+| **Guided** | User unsure | `/speckit.plan` → `stack-advisor` Q&A (3-5 questions) |
+| **Existing** | Project has code | Auto-detect with `tech-stack-detection` skill |
 
 ### Harness Workflow (Implementation Phase)
-5. `@Coder` - Implements features one at a time on Spec Kit branch
-6. Repeat @Coder until all features pass
-7. Create PR to merge to dev
+6. `@Coder` - Implements features one at a time on Spec Kit branch
+7. Repeat @Coder until all features pass
+8. Create PR to merge to dev
 
 **OR use Autonomous Mode:**
 
@@ -279,13 +288,21 @@ Agent Skills are portable, auto-activated capabilities that work across VS Code,
 
 | Skill | Triggers On | Purpose |
 |-------|-------------|---------|
+| `stack-advisor` | tech stack, what framework, unsure | Q&A flow for new projects (3-5 questions) |
+| `tech-stack-detection` | existing project, detect stack | Auto-detect from installed files |
 | `tdd-workflow` | TDD, testing, red-green-refactor | Enforces TDD Gate 1/2 compliance |
 | `ralph-autonomous` | Ralph, autonomous, unattended | 10-step autonomous process |
 | `spec-kit-planning` | spec, specification, planning | SDD workflow patterns |
 | `frontend-design` | build, dashboard, React, HTML/CSS | Production-grade UI design |
 | `webapp-testing` | testing, Playwright, verify UI | Browser automation testing |
 | `skill-creator` | create skill, new skill | Create new custom skills |
-| `tech-stack-detection` | stack, dependencies, framework | Auto-detect project tech |
+
+### Tech Stack Skills
+
+| Skill | When to Use |
+|-------|-------------|
+| `stack-advisor` | **New project**, user unsure what tech to use |
+| `tech-stack-detection` | **Existing project**, need to detect installed tech |
 
 ### How Skills Auto-Activate
 

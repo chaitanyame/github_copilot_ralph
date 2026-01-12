@@ -51,11 +51,16 @@ cd my-project
 Use Spec Kit workflow to create specifications and generate feature list:
 
 ```
+/speckit.constitution    # Define project principles (optional)
 /speckit.specify "Your feature description"
-/speckit.plan      # Auto-detects tech stack + creates skills
+/speckit.plan "Tech stack details"   # OR just /speckit.plan for Q&A
 /speckit.tasks
 /harness.generate
 ```
+
+**Tech Stack Selection** - Two modes:
+- **Expert**: `/speckit.plan Use React + Vite + TailwindCSS` (you provide the stack)
+- **Guided**: `/speckit.plan` (Q&A asks 3-5 questions, suggests stack)
 
 This creates:
 - Specification in `specs/{branch}/spec.md`
@@ -108,10 +113,20 @@ git push origin {branch-name}
 ┌──────────────────────────────────────────────────────────────┐
 │              SPEC KIT (Planning Phase)                       │
 ├──────────────────────────────────────────────────────────────┤
-│  /speckit.specify  → Creates spec + auto-creates branch      │
-│  /speckit.plan     → Detects tech stack + creates plan       │
-│  /speckit.tasks    → Generates task breakdown                │
-│  /harness.generate → Converts to feature_list.json           │
+│  /speckit.constitution → Define project principles (optional)│
+│  /speckit.specify      → Creates spec + auto-creates branch  │
+│  /speckit.plan         → User provides OR Q&A selects stack  │
+│  /speckit.tasks        → Generates task breakdown            │
+│  /harness.generate     → Converts to feature_list.json       │
+└──────────────────────────────────────────────────────────────┘
+                            ↓
+┌──────────────────────────────────────────────────────────────┐
+│         TECH STACK SELECTION (During /speckit.plan)          │
+├──────────────────────────────────────────────────────────────┤
+│  Expert Mode               │  Guided Mode (stack-advisor)    │
+│  • User provides stack     │  • Q&A asks 3-5 questions       │
+│  • /speckit.plan React...  │  • Suggests appropriate stack   │
+│  • Proceed immediately     │  • User confirms/modifies       │
 └──────────────────────────────────────────────────────────────┘
                             ↓
 ┌──────────────────────────────────────────────────────────────┐
@@ -138,13 +153,21 @@ Agent Skills are **portable, auto-activating capabilities** that work across VS 
 
 | Skill | Triggers On | Purpose |
 |-------|-------------|---------|
+| `stack-advisor` | what framework, unsure, tech stack | Q&A for new projects (3-5 questions) |
+| `tech-stack-detection` | existing project, detect stack | Auto-detect installed tech |
 | `tdd-workflow` | TDD, testing, red-green-refactor | Enforces TDD Gate 1/2 compliance |
 | `ralph-autonomous` | Ralph, autonomous, unattended | 10-step autonomous process |
 | `spec-kit-planning` | spec, specification, planning | SDD workflow patterns |
 | `frontend-design` | dashboard, React, HTML/CSS | Production-grade UI design |
 | `webapp-testing` | testing, Playwright, verify UI | Browser automation testing |
 | `skill-creator` | create skill, new skill | Create new custom skills |
-| `tech-stack-detection` | stack, dependencies, framework | Auto-detect project tech |
+
+### Tech Stack Skills
+
+| Skill | Scenario | What It Does |
+|-------|----------|--------------|
+| `stack-advisor` | New project, user unsure | Asks 3-5 questions, suggests stack |
+| `tech-stack-detection` | Existing project | Auto-detects from config files |
 
 ### How Skills Auto-Activate
 

@@ -27,9 +27,48 @@ Create an implementation plan for the current feature specification.
    cat specs/$BRANCH/spec.md
    ```
 
-### Step 2: Detect Tech Stack
+### Step 2: Determine Tech Stack (Two Modes)
 
-Run tech stack detection to understand the project:
+Check if user provided tech stack in the command arguments.
+
+#### Mode A: Expert Mode (User Provided Tech Stack)
+
+If user runs `/speckit.plan` WITH tech stack details like:
+```
+/speckit.plan Use React 18 + Vite + TailwindCSS + Playwright for testing
+```
+
+→ **Proceed directly to Step 3** using the provided stack.
+
+#### Mode B: Guided Mode (No Tech Stack Provided)
+
+If user runs `/speckit.plan` WITHOUT tech stack details:
+```
+/speckit.plan
+```
+
+→ **Activate the `stack-advisor` skill** and run the Q&A flow:
+
+1. Ask Question 1: Project Type (web app, API, CLI, etc.)
+2. Ask Question 2: Project Scale (prototype, medium, large)
+3. Ask Question 3: Key Requirements (real-time, SEO, performance, etc.)
+4. Ask Question 4: Team Preference (beginner-friendly, modern, cutting-edge) - optional
+5. Ask Question 5: Constraints (must use X, avoid Y) - optional
+
+Based on answers, recommend a tech stack using the decision matrix in `.github/skills/stack-advisor/SKILL.md`.
+
+Present the recommendation and ask for confirmation:
+```
+Recommended: Next.js + TypeScript + TailwindCSS + Playwright
+
+Proceed with this stack? (Y/n/modify)
+```
+
+Once confirmed → Proceed to Step 3.
+
+#### Mode C: Existing Project (Auto-Detect)
+
+For **existing projects** with established code, detect the stack:
 
 ```bash
 # Bash/Mac/Linux
@@ -39,15 +78,11 @@ Run tech stack detection to understand the project:
 .\.github\skills\tech-stack-detection\scripts\detect-stack.ps1
 ```
 
-This outputs JSON with detected:
-- Language (TypeScript, Python, etc.)
-- Frameworks (React, Next.js, Vue, etc.)
-- Testing tools (Playwright, Jest, etc.)
-- Build tools (Vite, Webpack, etc.)
+Present detected stack and ask for confirmation before proceeding.
 
 ### Step 3: Create Stack-Specific Skills (If Needed)
 
-Based on detected tech stack, create relevant skills if they don't exist:
+Based on the confirmed tech stack, create relevant skills if they don't exist:
 
 | Detected | Create Skill |
 |----------|--------------|

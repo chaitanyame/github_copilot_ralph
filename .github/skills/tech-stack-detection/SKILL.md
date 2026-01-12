@@ -1,11 +1,24 @@
 ---
 name: tech-stack-detection
-description: Detects project technology stack from configuration files and directory structure. Use when starting work on a new project, configuring tools, needing to understand project dependencies, or when initializing skills for a specific tech stack.
+description: Auto-detects technology stack from existing project files (package.json, tsconfig, etc.). Use ONLY for existing projects with established code to discover what's already installed. For NEW projects where tech stack hasn't been decided, use stack-advisor skill instead.
 ---
 
 # Tech Stack Detection Skill
 
-Automatically detects project technology stack to customize behavior and create appropriate skills.
+Automatically detects project technology stack from configuration files for **existing projects**.
+
+> **⚠️ For Existing Projects Only**
+> 
+> This skill scans project files to detect what's already installed.
+> For **new projects** where you need to choose a tech stack, use the `stack-advisor` skill instead.
+
+## When to Use
+
+| Scenario | Use This Skill? |
+|----------|-----------------|
+| Existing project with code | ✅ Yes - detect installed stack |
+| New project, user knows stack | ❌ No - user provides to /speckit.plan |
+| New project, user unsure | ❌ No - use `stack-advisor` Q&A |
 
 ## Detection Patterns
 
