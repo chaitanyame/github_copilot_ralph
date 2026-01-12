@@ -28,54 +28,153 @@ This framework provides file-based artifacts that bridge context between session
 Click "Use this template" on GitHub, or clone directly:
 
 ```bash
-git clone https://github.com/anthropics/agent-harness-framework.git my-project
+git clone https://github.com/chaitanyame/github_copilot_harness_framework.git my-project
 cd my-project
 ```
 
-### 2. Initialize Your Project
+### 2. Planning Phase (Spec Kit)
 
-In VS Code with GitHub Copilot, invoke the Initializer agent:
+Use Spec Kit workflow to create specifications and generate feature list:
 
 ```
-@Initializer Set up a [describe your project]
+/speckit.specify "Your feature description"
+/speckit.plan
+/speckit.tasks
+/harness.generate
 ```
 
-The Initializer will:
-- Create `memory/feature_list.json` with all features
-- Set up project structure
-- Create `init.sh` for environment setup
-- Make the initial git commit
+This creates:
+- Specification in `specs/{branch}/spec.md`
+- Implementation plan in `specs/{branch}/plan.md`
+- Task breakdown in `specs/{branch}/tasks.md`
+- Feature tracking in `memory/feature_list.json`
+- **Spec Kit branch** (e.g., `003-your-feature-name`)
 
-### 3. Implement Features
+### 3. Implementation Phase (Choose Your Mode)
 
-Use the Coder agent for subsequent sessions:
+**Option A: Interactive Mode** - For complex features or when supervision needed
 
 ```
 @Coder Continue implementing features
 ```
 
-The Coder will:
-- Read progress notes to get context
-- Pick one feature to implement
-- Test and verify
-- Commit and update progress
+Manual invocation per feature. Good for:
+- Debugging complex issues
+- Ambiguous requirements
+- Learning the codebase
 
-## Two-Agent Pattern
+**Option B: Autonomous Mode (Ralph)** - For unattended batch implementation
 
-### Initializer (Session 1)
+```bash
+# Bash (Linux/Mac)
+./scripts/bash/ralph.sh --max-iterations 50
 
-Sets up the foundation for all future work:
-- Creates comprehensive feature list
-- Establishes project structure
-- Documents everything for future agents
+# PowerShell (Windows)
+.\scripts\powershell\ralph.ps1 -MaxIterations 50
+```
 
-### Coder (Sessions 2+)
+Autonomous loop until all features pass. Good for:
+- Overnight runs
+- Well-defined feature lists
+- Batch processing 10-50 features
 
-Makes incremental progress:
-- Reads previous session notes
+### 4. Create Pull Request
+
+Once all features pass:
+
+```bash
+git push origin {branch-name}
+# Create PR: {branch-name} → dev
+```
+
+## Workflow Overview
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│              SPEC KIT (Planning Phase)                       │
+├──────────────────────────────────────────────────────────────┤
+│  /speckit.specify  → Creates spec + auto-creates branch      │
+│  /speckit.plan     → Creates implementation plan             │
+│  /speckit.tasks    → Generates task breakdown                │
+│  /harness.generate → Converts to feature_list.json           │
+└──────────────────────────────────────────────────────────────┘
+                            ↓
+┌──────────────────────────────────────────────────────────────┐
+│         IMPLEMENTATION (Choose Your Mode)                    │
+├──────────────────────────────────────────────────────────────┤
+│  Interactive (@Coder)          │  Autonomous (Ralph)         │
+│  • Manual per feature          │  • External loop runner     │
+│  • Human supervision           │  • Unattended execution     │
+│  • Good for debugging          │  • Good for batch work      │
+└──────────────────────────────────────────────────────────────┘
+                            ↓
+┌──────────────────────────────────────────────────────────────┐
+│              PR & MERGE TO DEV                               │
+├──────────────────────────────────────────────────────────────┤
+│  All features passing + tests green + git clean              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+## Complete Example Workflow
+
+**End-to-end: From idea to merged PR**
+
+```bash
+# 1. PLANNING PHASE (Spec Kit in VS Code)
+/speckit.specify "Real-time chat with WebSocket support"
+/speckit.plan
+/speckit.tasks
+/harness.generate
+
+# Result: Branch 003-real-time-chat created with feature_list.json
+
+# 2. IMPLEMENTATION PHASE (Choose one)
+
+# Option A: Interactive
+@Coder  # Implement features one-by-one with supervision
+
+# Option B: Autonomous
+./scripts/bash/ralph.sh --max-iterations 30  # Overnight run
+
+# 3. REVIEW & MERGE
+git push origin 003-real-time-chat
+# Create PR in GitHub: 003-real-time-chat → dev
+# Review, approve, merge
+```
+
+**Result:** Feature fully implemented, tested, and merged without manual coding.
+
+## Two Implementation Modes
+
+### Interactive Mode (@Coder)
+
+Step-by-step implementation with human oversight:
+- Reads progress notes to get context
 - Implements ONE feature at a time
+- Waits for human approval between features
 - Tests before marking complete
 - Leaves clean state for next session
+
+**When to use:**
+- Complex features requiring judgment
+- Debugging or troubleshooting
+- Ambiguous requirements
+- Learning or exploring codebase
+
+### Autonomous Mode (Ralph)
+
+Continuous implementation until completion:
+- Fresh Copilot CLI session per iteration
+- Implements ONE feature following 10-step TDD process
+- Auto-commits and updates progress
+- Loops until all features pass or max iterations
+- 3-layer security validation on all commands
+
+**When to use:**
+- Well-defined feature lists
+- Overnight or unattended runs
+- Batch processing 10-50 features
+- Clear acceptance criteria
 
 ## Autonomous Mode (Ralph)
 
